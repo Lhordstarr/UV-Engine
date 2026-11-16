@@ -99,8 +99,8 @@ def backends_report():
         "label": "Python runtime (torch)",
         "device": python_device,
         "detail": python_detail,
-        "controllable": False,
-        "readonlyReason": "Fixed at install time. Reinstall torch with the right compute build to change it.",
+        "controllable": True,
+        "readonlyReason": None,
         "evidence": (f"torch {torch['version']} — is_available()={torch['cuda'] or torch['mps']}" if torch["installed"] else "torch not importable"),
         "meta": torch,
     })
@@ -163,8 +163,16 @@ def backends_report():
         "onnxruntime": (["CPU (always); GPU providers optional"], True),
         "sdcpp": (["GPU recommended"], gpu_present if False else True),
     }
+    try:
+        from .settings import is_backend_enabled
+    except Exception:
+        def is_backend_enabled(bid):
+            return True
     for r in reports:
         r["optional"] = True
+        r["controllable"] = True
+        r["enabled"] = is_backend_enabled(r["id"])
+        r["readonlyReason"] = None
         r["requirements"], r["meets_requirements"] = req_map.get(r["id"], (["none"], True))
     return {"backends": reports, "torch": torch, "hardware": {
         "gpu_present": gpu_present,

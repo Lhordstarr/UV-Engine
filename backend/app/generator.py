@@ -150,6 +150,14 @@ def run_job(job_id):
         # Decide mode
         use_real = job["params"].get("use_real", False)
         real_ok = False
+        # Respect backend toggle
+        try:
+            from .settings import is_backend_enabled
+            if not is_backend_enabled("diffusers"):
+                use_real = False
+                append_log(job_id, "diffusers backend disabled by user; using demo mode.")
+        except Exception:
+            pass
         if use_real:
             try:
                 out = _try_real_generation(job)

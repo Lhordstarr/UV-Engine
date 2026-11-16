@@ -2,6 +2,8 @@ import axios from 'axios'
 const api = axios.create({ baseURL: '/api' })
 export default api
 export const getHardware = () => api.get('/hardware').then(r=>r.data)
+export const getSettings = () => api.get('/settings').then(r=>r.data)
+export const toggleBackend = (id, enabled) => api.post(`/backends/${id}/toggle`, null, { params: { enabled } }).then(r=>r.data)
 export const getModels = (params) => api.get('/models', { params }).then(r=>r.data)
 export const getModel = (id) => api.get(`/models/${id}`).then(r=>r.data)
 export const estimate = (p) => api.post('/estimate', null, { params: p }).then(r=>r.data)

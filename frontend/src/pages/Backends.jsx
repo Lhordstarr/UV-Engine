@@ -1,13 +1,20 @@
 import { useEffect, useState } from 'react'
-import { Cpu, CheckCircle2, XCircle, AlertCircle } from 'lucide-react'
+import { Cpu, CheckCircle2, XCircle, AlertCircle, Power } from 'lucide-react'
 import api from '../api'
+import { toggleBackend } from '../api'
 
 const deviceColor = { gpu: 'bg-emerald-500/15 text-emerald-400', cpu: 'bg-amber-500/15 text-amber-400', none: 'bg-red-500/15 text-red-400', hybrid: 'bg-cyan-500/15 text-cyan-400', unknown: 'bg-white/10 text-white/50' }
 
 export default function Backends() {
   const [data, setData] = useState(null)
   const [install, setInstall] = useState(null)
+  const [toggling, setToggling] = useState(null)
   const refreshBackends = () => api.get('/backends').then(r=>setData(r.data)).catch(()=>{})
+  const handleToggle = async (b) => {
+    setToggling(b.id)
+    try { await toggleBackend(b.id, !b.enabled); await refreshBackends() } catch(e) {}
+    setToggling(null)
+  }
   useEffect(()=>{ refreshBackends(); api.get('/backends/install-ml/status').then(r=>setInstall(r.data)).catch(()=>{}) }, [])
 
   const startInstall = async () => {
@@ -69,10 +76,15 @@ export default function Backends() {
                   </div>
                 </div>
                 <span className={`text-xs px-2.5 py-1 rounded-full font-medium ${deviceColor[b.device]||'bg-white/10'}`}>{b.device}</span>
+                <button onClick={()=>handleToggle(b)} disabled={toggling===b.id}
+                  className={`ml-2 flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-medium transition ${b.enabled?'bg-emerald-500/15 text-emerald-400 hover:bg-emerald-500/25':'bg-white/10 text-white/40 hover:bg-white/15'} disabled:opacity-40`}
+                  title={b.enabled?'Enabled - click to disable':'Disabled - click to enable'}>
+                  <Power className="w-3 h-3"/>{b.enabled?'On':'Off'}
+                </button>
               </div>
               <div className="mt-3 text-xs text-white/40">
                 <div><span className="text-white/60">Optional:</span> {b.optional ? 'yes' : 'no'} · <span className="text-white/60">Meets requirements:</span> {b.meets_requirements ? 'yes' : 'no'} · {b.requirements?.join(', ')}</div>
-                <div><span className="text-white/60">Controllable:</span> {b.controllable ? 'yes' : 'no'} {b.readonlyReason && `— ${b.readonlyReason}`}</div>
+                <div><span className="text-white/60">Enabled:</span> {b.enabled ? 'yes' : 'no'} · <span className="text-white/60">Optional:</span> {b.optional ? 'yes' : 'no'} · <span className="text-white/60">Meets requirements:</span> {b.meets_requirements ? 'yes' : 'no'}</div>
                 <div className="mt-1 font-mono break-all"><span className="text-white/60">evidence:</span> {b.evidence}</div>
               </div>
               {b.meta && (

@@ -10,6 +10,7 @@ import os, shutil
 from .hardware import detect_hardware, estimate_vram
 from .models_registry import list_models, get_model
 from .model_downloader import start_download, status as download_status, list_downloads, is_downloaded, MODELS_DIR, pause_download
+from .settings import get_settings, set_backend_enabled, is_backend_enabled
 from .jobs import new_job, get_job, list_jobs, list_videos, VIDEOS_DIR, update_job
 from .generator import submit
 from .telemetry import record, stats
@@ -195,6 +196,15 @@ def resources():
 @app.get("/api/backends")
 def backends():
     return backends_report()
+
+@app.get("/api/settings")
+def settings_get():
+    return get_settings()
+
+@app.post("/api/backends/{bid}/toggle")
+def backend_toggle(bid: str, enabled: bool):
+    new_val = set_backend_enabled(bid, enabled)
+    return {"id": bid, "enabled": new_val}
 
 @app.post("/api/backends/install-ml")
 def install_ml(backend: str = "ml"):
