@@ -158,6 +158,7 @@ def run_job(job_id):
                 real_ok = True
             except Exception as e:
                 append_log(job_id, f"Real generation unavailable: {e}")
+                update_job(job_id, real_generation_error=str(e)[:300])
                 real_ok = False
         if not real_ok:
             out = _demo_generation(job)

@@ -203,6 +203,9 @@ export default function Generate() {
                 </div>
               )}
               {job.status==='error' && <div className="text-xs text-red-400">{job.error}</div>}
+              {job.real_generation_error && (
+                <div className="text-xs text-amber-400">Real generation unavailable: {job.real_generation_error}</div>
+              )}
               {job.logs?.length>0 && (
                 <details className="text-xs">
                   <summary className="cursor-pointer text-white/40">Logs</summary>
