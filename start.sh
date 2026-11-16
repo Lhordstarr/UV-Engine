@@ -19,10 +19,10 @@ fi
 cd backend
 
 # --- Create/sync the Python environment ---
-# Install ML deps (torch/diffusers) so real video generation works out of the box.
-# (CPU-only machines can still attempt real generation, albeit very slowly.)
-echo "Syncing Python environment with ML deps (uv sync --extra ml)..."
-uv sync --extra ml
+# Base deps only (fast). ML deps (torch/diffusers) are optional and can be
+# installed via the Backends page ("Install ML backend") or: uv sync --extra ml
+echo "Syncing Python environment (uv sync)..."
+uv sync
 
 # --- Optionally build the frontend if a build is missing ---
 if [ ! -f "../frontend/dist/index.html" ]; then
