@@ -2,6 +2,7 @@ import { useEffect, useState, useRef } from 'react'
 import { useSearchParams } from 'react-router-dom'
 import { Play, Download, Upload, Loader2, CheckCircle2, AlertCircle } from 'lucide-react'
 import { getModels, generate, getJob, uploadImage, estimate, getTelemetryStats, postTelemetry } from '../api'
+import api from '../api'
 import Resources from '../components/Resources'
 
 export default function Generate() {
@@ -23,9 +24,17 @@ export default function Generate() {
   const refreshStats = () => getTelemetryStats().then(setStats).catch(()=>{})
   const [job, setJob] = useState(null)
   const [error, setError] = useState(null)
+  const [backends, setBackends] = useState(null)
   const pollRef = useRef(null)
 
-  useEffect(()=>{ getModels().then(d=>{ setModels(d.models||[]); if(!modelId && d.models?.length) setModelId(d.models[0].id) }); refreshStats() }, [])
+  useEffect(()=>{ getModels().then(d=>{ setModels(d.models||[]); if(!modelId && d.models?.length) setModelId(d.models[0].id) }); refreshStats(); api.get('/backends').then(r=>setBackends(r.data)).catch(()=>{}) }, [])
+
+  const realGenAvailable = !!(backends?.torch?.installed && backends?.torch?.device === 'gpu' && backends?.backends?.find(b=>b.id==='diffusers')?.meets_requirements !== false && backends?.backends?.find(b=>b.id==='diffusers')?.device !== 'none')
+  const realGenReason = !backends ? 'Checking…' :
+    !backends.torch?.installed ? 'PyTorch not installed' :
+    backends.torch?.device !== 'gpu' ? 'No GPU (CPU-only torch)' :
+    backends.backends?.find(b=>b.id==='diffusers')?.device === 'none' ? 'diffusers not installed' :
+    'Available'
 
   const model = models.find(m=>m.id===modelId)
 
@@ -137,11 +146,17 @@ export default function Generate() {
             )}
 
             <div className="flex items-center gap-3">
-              <label className="flex items-center gap-2 text-sm text-white/60 cursor-pointer">
-                <input type="checkbox" checked={useReal} onChange={e=>setUseReal(e.target.checked)} className="accent-violet-500"/>
+              <label className={`flex items-center gap-2 text-sm cursor-pointer ${realGenAvailable?'text-white/60':'text-white/30'}`}>
+                <input type="checkbox" checked={useReal} onChange={e=>setUseReal(e.target.checked)} disabled={!realGenAvailable} className="accent-violet-500 disabled:opacity-40"/>
                 Attempt real model (requires GPU + diffusers)
               </label>
+              <span className={`text-xs ${realGenAvailable?'text-emerald-400':'text-amber-400'}`}>Real gen: {realGenReason}</span>
             </div>
+            {!realGenAvailable && (
+              <div className="text-xs text-white/40">
+                Real generation is unavailable on this machine, so jobs run in demo mode (animated preview). Install ML deps (`uv sync --extra ml`) on a machine with a supported GPU to enable real models.
+              </div>
+            )}
 
             <button onClick={submit} disabled={!prompt.trim() || !modelId}
               className="w-full py-3 rounded-xl bg-gradient-to-r from-violet-600 to-cyan-500 font-semibold hover:opacity-90 transition disabled:opacity-40 disabled:cursor-not-allowed flex items-center justify-center gap-2 shadow-lg shadow-violet-500/30">
