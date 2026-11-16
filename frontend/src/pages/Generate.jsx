@@ -16,7 +16,7 @@ export default function Generate() {
   const [fps, setFps] = useState('')
   const [steps, setSteps] = useState(25)
   const [seed, setSeed] = useState('')
-  const [useReal, setUseReal] = useState(false)
+  // demo mode removed; real generation is always attempted
   const [imagePath, setImagePath] = useState(null)
   const [imageName, setImageName] = useState('')
   const [vramEst, setVramEst] = useState(null)
@@ -65,7 +65,6 @@ export default function Generate() {
         fps: fps ? +fps : null,
         steps: steps ? +steps : null,
         seed: seed ? +seed : null,
-        use_real: useReal,
         input_image: imagePath,
       })
       setJob({ id: r.job_id, status: r.status, progress: 0, stage: 'Queued', logs: [] })
@@ -147,15 +146,11 @@ export default function Generate() {
             )}
 
             <div className="flex items-center gap-3">
-              <label className={`flex items-center gap-2 text-sm cursor-pointer ${realGenAvailable?'text-white/60':'text-white/30'}`}>
-                <input type="checkbox" checked={useReal} onChange={e=>setUseReal(e.target.checked)} disabled={!realGenAvailable} className="accent-violet-500 disabled:opacity-40"/>
-                Attempt real model (requires GPU + diffusers)
-              </label>
               <span className={`text-xs ${realGenAvailable?'text-emerald-400':'text-amber-400'}`}>Real gen: {realGenReason}</span>
             </div>
             {!realGenAvailable && (
               <div className="text-xs text-white/40">
-                Real generation is unavailable (missing PyTorch/diffusers). Run `./start.sh` on a GPU machine, or install ML deps with `uv sync --extra ml`.
+                Real generation is unavailable (missing PyTorch/diffusers). Run `./start.sh` on a GPU machine, or install ML deps with `uv sync --extra ml`. (Demo mode removed.)
               </div>
             )}
             {realGenAvailable && backends?.torch?.device !== 'gpu' && (

@@ -49,7 +49,7 @@ export default function Settings() {
           {models.filter(m=>m.fits).length} of {models.length} models fit your detected VRAM ({hw?.total_vram_gb} GB).
         </div>
         <div className="text-xs text-white/40">
-          Enable "Attempt real model" in Generate to use diffusers (requires torch + GPU). Otherwise demo mode renders an animated preview so the pipeline & downloads work on any machine.
+          Real generation requires ML deps (torch + diffusers) and a supported GPU. Install via the Backends tab ("Install ML backend"). Demo mode has been removed.
         </div>
       </div>
 
