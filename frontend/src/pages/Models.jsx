@@ -1,7 +1,7 @@
 import { useEffect, useState, useRef } from 'react'
 import { Link } from 'react-router-dom'
-import { Search, Cpu, Filter, Download, Loader2, CheckCircle2 } from 'lucide-react'
-import { getModels, getHardware, postTelemetry, downloadModel, listModelDownloads } from '../api'
+import { Search, Cpu, Filter, Download, Loader2, CheckCircle2, Pause, Play } from 'lucide-react'
+import { getModels, getHardware, postTelemetry, downloadModel, pauseModelDownload, listModelDownloads } from '../api'
 
 function fmtBytes(b) {
   if (typeof b !== 'number' || !isFinite(b)) return '—'
@@ -92,10 +92,16 @@ export default function Models() {
             <div className="mt-4 flex gap-2">
               <Link to={`/generate?model=${m.id}`} className="flex-1 text-center px-3 py-2 rounded-lg bg-violet-600/80 hover:bg-violet-600 text-sm font-medium transition">Use</Link>
               <button onClick={async ()=>{ try { await downloadModel(m.id); refreshDl(); postTelemetry('model_download_started',{model_id:m.id}) } catch(e){} }}
-                disabled={dlStatus[m.id]?.status==='running' || dlStatus[m.id]?.status==='queued'}
+                disabled={dlStatus[m.id]?.status==='running' || dlStatus[m.id]?.status==='queued' || dlStatus[m.id]?.status==='paused'}
                 className="px-3 py-2 rounded-lg bg-emerald-600/80 hover:bg-emerald-600 text-sm font-medium transition disabled:opacity-40 flex items-center gap-1" title="Download model weights to server">
                 {dlStatus[m.id]?.status==='running' || dlStatus[m.id]?.status==='queued' ? <Loader2 className="w-4 h-4 animate-spin"/> : <Download className="w-4 h-4"/>}
               </button>
+              {(dlStatus[m.id]?.status==='running' || dlStatus[m.id]?.status==='paused') && (
+                <button onClick={async ()=>{ try { await pauseModelDownload(m.id); refreshDl() } catch(e){} }}
+                  className="px-3 py-2 rounded-lg bg-amber-600/80 hover:bg-amber-600 text-sm font-medium transition flex items-center gap-1" title="Pause/resume download">
+                  {dlStatus[m.id]?.status==='paused' ? <Play className="w-4 h-4"/> : <Pause className="w-4 h-4"/>}
+                </button>
+              )}
               <a href={m.download_url} target="_blank" rel="noreferrer" onClick={()=>postTelemetry('model_download_clicked',{model_id:m.id})}
                 className="px-3 py-2 rounded-lg bg-white/5 hover:bg-white/10 text-sm transition" title="Open on HuggingFace">⬇</a>
             </div>

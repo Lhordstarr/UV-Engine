@@ -1,6 +1,6 @@
 import { useEffect, useState, useRef } from 'react'
-import { Download, Film, Cpu, ExternalLink, Loader2, CheckCircle2 } from 'lucide-react'
-import { getModels, getVideos, postTelemetry, downloadModel, listModelDownloads } from '../api'
+import { Download, Film, Cpu, ExternalLink, Loader2, CheckCircle2, Pause, Play } from 'lucide-react'
+import { getModels, getVideos, postTelemetry, downloadModel, pauseModelDownload, listModelDownloads } from '../api'
 
 function fmtBytes(b) {
   if (typeof b !== 'number' || !isFinite(b)) return '—'
@@ -45,11 +45,18 @@ export default function Downloads() {
                   </div>
                 </div>
                 <button onClick={async()=>{ try { await downloadModel(m.id); postTelemetry('model_download_started',{model_id:m.id}) } catch(e){} }}
-                  disabled={st?.status==='running' || st?.status==='queued'}
+                  disabled={st?.status==='running' || st?.status==='queued' || st?.status==='paused'}
                   className="flex items-center gap-2 px-4 py-2 rounded-lg bg-emerald-600/80 hover:bg-emerald-600 text-sm font-medium transition disabled:opacity-40">
                   {st?.status==='running' || st?.status==='queued' ? <Loader2 className="w-4 h-4 animate-spin"/> : (st?.status==='done' ? <CheckCircle2 className="w-4 h-4"/> : <Download className="w-4 h-4"/>)}
                   {st?.status==='running' || st?.status==='queued' ? 'Downloading…' : (st?.status==='done' ? 'Downloaded' : 'Download')}
                 </button>
+                {(st?.status==='running' || st?.status==='paused') && (
+                  <button onClick={async()=>{ try { await pauseModelDownload(m.id) } catch(e){} }}
+                    className="flex items-center gap-2 px-4 py-2 rounded-lg bg-amber-600/80 hover:bg-amber-600 text-sm font-medium transition">
+                    {st?.status==='paused' ? <Play className="w-4 h-4"/> : <Pause className="w-4 h-4"/>}
+                    {st?.status==='paused' ? 'Resume' : 'Pause'}
+                  </button>
+                )}
                 <a href={m.download_url} target="_blank" rel="noreferrer"
                   onClick={()=>postTelemetry('model_download_clicked',{model_id:m.id})}
                   className="flex items-center gap-2 px-4 py-2 rounded-lg bg-white/5 hover:bg-white/10 text-sm font-medium transition">

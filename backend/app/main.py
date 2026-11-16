@@ -9,7 +9,7 @@ import os, shutil
 
 from .hardware import detect_hardware, estimate_vram
 from .models_registry import list_models, get_model
-from .model_downloader import start_download, status as download_status, list_downloads, is_downloaded, MODELS_DIR
+from .model_downloader import start_download, status as download_status, list_downloads, is_downloaded, MODELS_DIR, pause_download
 from .jobs import new_job, get_job, list_jobs, list_videos, VIDEOS_DIR, update_job
 from .generator import submit
 from .telemetry import record, stats
@@ -106,6 +106,14 @@ def model_download_status(mid: str):
     if st is None:
         raise HTTPException(404, "model not found")
     return st
+
+@app.post("/api/models/{mid}/download/pause")
+def model_download_pause(mid: str):
+    m = get_model(mid)
+    if not m:
+        raise HTTPException(404, "model not found")
+    ok, msg = pause_download(mid)
+    return {"model_id": mid, "ok": ok, "message": msg, "status": download_status(mid)}
 
 @app.post("/api/generate")
 def generate(req: GenerateRequest):

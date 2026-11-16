@@ -6,6 +6,7 @@ export const getModels = (params) => api.get('/models', { params }).then(r=>r.da
 export const getModel = (id) => api.get(`/models/${id}`).then(r=>r.data)
 export const estimate = (p) => api.post('/estimate', null, { params: p }).then(r=>r.data)
 export const downloadModel = (id) => api.post(`/models/${id}/download`).then(r=>r.data)
+export const pauseModelDownload = (id) => api.post(`/models/${id}/download/pause`).then(r=>r.data)
 export const getModelDownloadStatus = (id) => api.get(`/models/${id}/download/status`).then(r=>r.data)
 export const listModelDownloads = () => api.get('/models/downloads').then(r=>r.data)
 export const generate = (p) => api.post('/generate', p).then(r=>r.data)
