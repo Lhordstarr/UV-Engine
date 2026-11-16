@@ -3,6 +3,13 @@ import { Link } from 'react-router-dom'
 import { Search, Cpu, Filter, Download, Loader2, CheckCircle2 } from 'lucide-react'
 import { getModels, getHardware, postTelemetry, downloadModel, listModelDownloads } from '../api'
 
+function fmtBytes(b) {
+  if (typeof b !== 'number' || !isFinite(b)) return '—'
+  if (b >= 1024 ** 3) return `${(b/1024**3).toFixed(2)} GB`
+  if (b >= 1024 ** 2) return `${(b/1024**2).toFixed(1)} MB`
+  if (b >= 1024) return `${(b/1024).toFixed(1)} KB`
+  return `${b} B`
+}
 export default function Models() {
   const [models, setModels] = useState([])
   const [hw, setHw] = useState(null)
@@ -95,12 +102,12 @@ export default function Models() {
             {dlStatus[m.id] && dlStatus[m.id].status !== 'idle' && (
               <div className="mt-2">
                 <div className="flex items-center justify-between text-[10px] text-white/50 mb-1">
-                  <span>{dlStatus[m.id].status === 'done' ? 'Downloaded' : (dlStatus[m.id].current_file || dlStatus[m.id].stage)}</span>
-                  <span>{dlStatus[m.id].progress}%</span>
+                  <span className="truncate">{dlStatus[m.id].status === 'done' ? 'Downloaded' : (dlStatus[m.id].current_file || dlStatus[m.id].stage)}</span>
+                  <span>{Number(dlStatus[m.id].progress||0).toFixed(1)}%{dlStatus[m.id].total_bytes ? ` · ${fmtBytes(dlStatus[m.id].downloaded_bytes||0)} / ${fmtBytes(dlStatus[m.id].total_bytes)}` : ''}</span>
                 </div>
                 <div className="w-full h-1.5 bg-white/10 rounded-full overflow-hidden">
                   <div className={`h-full transition-all ${dlStatus[m.id].status==='done'?'bg-emerald-400':dlStatus[m.id].status==='error'?'bg-red-400':'bg-violet-500'}`}
-                    style={{width: `${dlStatus[m.id].progress||0}%`}}/>
+                    style={{width: `${Math.min(100, dlStatus[m.id].progress||0)}%`}}/>
                 </div>
                 {dlStatus[m.id].error && <div className="text-[10px] text-red-400 mt-1">{dlStatus[m.id].error}</div>}
                 {dlStatus[m.id].status==='done' && <div className="text-[10px] text-emerald-400 mt-1 flex items-center gap-1"><CheckCircle2 className="w-3 h-3"/> {dlStatus[m.id].path}</div>}

@@ -147,8 +147,8 @@ def _run(model_id):
 
 def _pct(downloaded, total):
     if total <= 0:
-        return 50
-    return min(99, int(downloaded / total * 100))
+        return 0.0
+    return round(min(99.99, downloaded / total * 100), 2)
 
 
 def _human(n):

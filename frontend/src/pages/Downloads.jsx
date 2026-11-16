@@ -2,6 +2,13 @@ import { useEffect, useState, useRef } from 'react'
 import { Download, Film, Cpu, ExternalLink, Loader2, CheckCircle2 } from 'lucide-react'
 import { getModels, getVideos, postTelemetry, downloadModel, listModelDownloads } from '../api'
 
+function fmtBytes(b) {
+  if (typeof b !== 'number' || !isFinite(b)) return '—'
+  if (b >= 1024 ** 3) return `${(b/1024**3).toFixed(2)} GB`
+  if (b >= 1024 ** 2) return `${(b/1024**2).toFixed(1)} MB`
+  if (b >= 1024) return `${(b/1024).toFixed(1)} KB`
+  return `${b} B`
+}
 export default function Downloads() {
   const [models, setModels] = useState([])
   const [videos, setVideos] = useState([])
@@ -53,7 +60,7 @@ export default function Downloads() {
                 <div className="mt-2">
                   <div className="flex items-center justify-between text-[10px] text-white/50 mb-1">
                     <span className="truncate">{st.current_file || st.stage}</span>
-                    <span>{st.progress}%</span>
+                    <span>{Number(st.progress||0).toFixed(1)}%{st.total_bytes ? ` · ${fmtBytes(st.downloaded_bytes||0)} / ${fmtBytes(st.total_bytes)}` : ''}</span>
                   </div>
                   <div className="w-full h-1.5 bg-white/10 rounded-full overflow-hidden">
                     <div className={`h-full transition-all ${st.status==='error'?'bg-red-400':'bg-violet-500'}`} style={{width:`${st.progress||0}%`}}/>
