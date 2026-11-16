@@ -12,14 +12,22 @@ A local-first web app for generating videos with open-source AI video models. Wo
 
 ## Run
 
-### Backend
+### One-command start (recommended)
+```bash
+./start.sh
+```
+This bootstraps the Python environment (`uv sync`, installing `uv` if missing), optionally builds the frontend, and starts the backend on port 1473 serving the UI.
+
+### Manual
+
+#### Backend
 ```bash
 cd backend
 uv sync
 uv run uvicorn app.main:app --host 0.0.0.0 --port 1473
 ```
 
-### Frontend (dev)
+#### Frontend (dev)
 ```bash
 cd frontend
 npm install
