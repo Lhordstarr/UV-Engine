@@ -69,6 +69,10 @@ def models(vram: float | None = None, type: str | None = None, q: str | None = N
         m["local_path"] = str(MODELS_DIR / m["id"]) if m["downloaded"] else None
     return {"models": ms, "vram_available": avail}
 
+@app.get("/api/models/downloads")
+def model_downloads():
+    return {"downloads": list_downloads()}
+
 @app.get("/api/models/{mid}")
 def model_detail(mid: str):
     m = get_model(mid)
@@ -102,10 +106,6 @@ def model_download_status(mid: str):
     if st is None:
         raise HTTPException(404, "model not found")
     return st
-
-@app.get("/api/models/downloads")
-def model_downloads():
-    return {"downloads": list_downloads()}
 
 @app.post("/api/generate")
 def generate(req: GenerateRequest):
