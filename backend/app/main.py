@@ -210,3 +210,20 @@ _PROJECT_ROOT = Path(__file__).resolve().parent.parent.parent
 FRONTEND_DIST = _PROJECT_ROOT / "frontend" / "dist"
 if FRONTEND_DIST.exists():
     app.mount("/", StaticFiles(directory=str(FRONTEND_DIST), html=True), name="frontend")
+
+    from fastapi.responses import FileResponse as _FR
+    from fastapi import Request as _Req
+
+    @app.exception_handler(404)
+    async def _spa_fallback(_request: _Req, _exc):
+        path = _request.url.path
+        if path.startswith("/api"):
+            return JSONResponse({"detail": "Not Found"}, status_code=404)
+        # Don't mask missing static assets as the SPA
+        last = path.rsplit("/", 1)[-1]
+        if "." in last:
+            return JSONResponse({"detail": "Not Found"}, status_code=404)
+        index = FRONTEND_DIST / "index.html"
+        if index.exists():
+            return _FR(index)
+        return JSONResponse({"detail": "Not Found"}, status_code=404)
