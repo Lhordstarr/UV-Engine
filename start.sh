@@ -19,8 +19,23 @@ fi
 cd backend
 
 # --- Create/sync the Python environment ---
-echo "Syncing Python environment (uv sync)..."
-uv sync
+# Install ML deps (torch/diffusers) automatically when a GPU is present,
+# so real video generation works out of the box. CPU-only machines stay light.
+if command -v nvidia-smi >/dev/null 2>&1; then
+  HAS_GPU=1
+elif [ -d /sys/class/drm ] && grep -q "0x1002\|0x10de" /sys/class/drm/card*/device/vendor 2>/dev/null; then
+  HAS_GPU=1
+else
+  HAS_GPU=0
+fi
+
+if [ "$HAS_GPU" = "1" ]; then
+  echo "GPU detected; syncing Python environment with ML deps (uv sync --extra ml)..."
+  uv sync --extra ml
+else
+  echo "No GPU detected; syncing base Python environment (uv sync)..."
+  uv sync
+fi
 
 # --- Optionally build the frontend if a build is missing ---
 if [ ! -f "../frontend/dist/index.html" ]; then
