@@ -29,12 +29,13 @@ export default function Generate() {
 
   useEffect(()=>{ getModels().then(d=>{ setModels(d.models||[]); if(!modelId && d.models?.length) setModelId(d.models[0].id) }); refreshStats(); api.get('/backends').then(r=>setBackends(r.data)).catch(()=>{}) }, [])
 
-  const realGenAvailable = !!(backends?.torch?.installed && backends?.torch?.device === 'gpu' && backends?.backends?.find(b=>b.id==='diffusers')?.meets_requirements !== false && backends?.backends?.find(b=>b.id==='diffusers')?.device !== 'none')
+  const diffusersBackend = backends?.backends?.find(b=>b.id==='diffusers')
+  const realGenAvailable = !!(backends?.torch?.installed && diffusersBackend && diffusersBackend.device !== 'none')
   const realGenReason = !backends ? 'Checking…' :
     !backends.torch?.installed ? 'PyTorch not installed' :
-    backends.torch?.device !== 'gpu' ? 'No GPU (CPU-only torch)' :
-    backends.backends?.find(b=>b.id==='diffusers')?.device === 'none' ? 'diffusers not installed' :
-    'Available'
+    diffusersBackend?.device === 'none' ? 'diffusers not installed' :
+    backends.torch?.device === 'gpu' ? 'Available (GPU)' :
+    'Available (CPU - slow)'
 
   const model = models.find(m=>m.id===modelId)
 
@@ -154,7 +155,12 @@ export default function Generate() {
             </div>
             {!realGenAvailable && (
               <div className="text-xs text-white/40">
-                Real generation is unavailable on this machine, so jobs run in demo mode (animated preview). Install ML deps (`uv sync --extra ml`) on a machine with a supported GPU to enable real models.
+                Real generation is unavailable (missing PyTorch/diffusers). Run `./start.sh` on a GPU machine, or install ML deps with `uv sync --extra ml`.
+              </div>
+            )}
+            {realGenAvailable && backends?.torch?.device !== 'gpu' && (
+              <div className="text-xs text-amber-400/80">
+                CPU mode: real generation works but is very slow and memory-heavy.
               </div>
             )}
 

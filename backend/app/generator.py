@@ -19,10 +19,8 @@ def hw():
 def _try_real_generation(job):
     """Attempt real diffusers generation. Returns path or raises."""
     import torch
-    # Only attempt if GPU present
     h = hw()
-    if not h["gpus"] or h["gpus"][0]["backend"] == "cpu":
-        raise RuntimeError("No GPU available for real generation")
+    # Allow CPU (slow) as a fallback for real generation when no GPU is present
     # Lazy imports
     from diffusers import DiffusionPipeline
     params = job["params"]
