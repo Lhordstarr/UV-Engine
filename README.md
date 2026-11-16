@@ -16,7 +16,7 @@ A local-first web app for generating videos with open-source AI video models. Wo
 ```bash
 cd backend
 uv sync
-uv run uvicorn app.main:app --host 0.0.0.0 --port 8000
+uv run uvicorn app.main:app --host 0.0.0.0 --port 1473
 ```
 
 ### Frontend (dev)
