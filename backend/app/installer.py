@@ -87,6 +87,8 @@ def _run(backend, vendor):
             _state["variant"] = variant
 
         if cmd:
+            # Target the project venv explicitly so torch lands where the backend runs
+            cmd = ["uv", "pip", "install", "--python", str(BACKEND_DIR / ".venv" / "bin" / "python")] + cmd[3:]
             proc2 = subprocess.Popen(cmd, cwd=str(BACKEND_DIR),
                                      stdout=subprocess.PIPE, stderr=subprocess.STDOUT, text=True)
             for line in proc2.stdout:
