@@ -37,5 +37,32 @@ if ! command -v ffmpeg >/dev/null 2>&1; then
   echo "WARNING: ffmpeg not found; video generation will fail. Install ffmpeg via your package manager." >&2
 fi
 
+# --- Free the port if a previous instance is still running ---
+PORT=1473
+free_port() {
+  local pids=""
+  if command -v ss >/dev/null 2>&1; then
+    pids=$(ss -ltnp 2>/dev/null | grep ":$PORT " | sed -n 's/.*pid=\([0-9]*\).*/\1/p' | sort -u)
+  elif command -v lsof >/dev/null 2>&1; then
+    pids=$(lsof -ti tcp:$PORT 2>/dev/null)
+  elif command -v fuser >/dev/null 2>&1; then
+    pids=$(fuser "$PORT/tcp" 2>/dev/null)
+  fi
+  for pid in $pids; do
+    if kill -0 "$pid" 2>/dev/null; then
+      echo "Stopping previous instance on port $PORT (pid $pid)..."
+      kill "$pid" 2>/dev/null || true
+    fi
+  done
+  # wait for port to be released
+  for _ in 1 2 3 4 5; do
+    if ! (ss -ltn 2>/dev/null | grep -q ":$PORT ") && ! (lsof -i :$PORT >/dev/null 2>&1); then
+      break
+    fi
+    sleep 0.5
+  done
+}
+free_port
+
 # --- Start backend (serves built frontend) ---
-exec uv run uvicorn app.main:app --host 0.0.0.0 --port 1473
+exec uv run uvicorn app.main:app --host 0.0.0.0 --port $PORT
