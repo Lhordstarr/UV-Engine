@@ -9,6 +9,7 @@ import os, shutil
 
 from .hardware import detect_hardware, estimate_vram
 from .models_registry import list_models, get_model
+from .model_downloader import start_download, status as download_status, list_downloads, is_downloaded, MODELS_DIR
 from .jobs import new_job, get_job, list_jobs, list_videos, VIDEOS_DIR, update_job
 from .generator import submit
 from .telemetry import record, stats
@@ -62,7 +63,11 @@ def models(vram: float | None = None, type: str | None = None, q: str | None = N
     if avail is None:
         h = detect_hardware()
         avail = h["total_vram_gb"]
-    return {"models": list_models(vram_available=avail, type_filter=type, query=q), "vram_available": avail}
+    ms = list_models(vram_available=avail, type_filter=type, query=q)
+    for m in ms:
+        m["downloaded"] = is_downloaded(m["id"])
+        m["local_path"] = str(MODELS_DIR / m["id"]) if m["downloaded"] else None
+    return {"models": ms, "vram_available": avail}
 
 @app.get("/api/models/{mid}")
 def model_detail(mid: str):
@@ -82,6 +87,25 @@ def estimate(model_id: str, width: int = 512, height: int = 512, num_frames: int
     if not m:
         raise HTTPException(404, "model not found")
     return {"model_id": model_id, "vram_gb": estimate_vram(model_id, width, height, num_frames, dtype)}
+
+@app.post("/api/models/{mid}/download")
+def model_download(mid: str):
+    m = get_model(mid)
+    if not m:
+        raise HTTPException(404, "model not found")
+    started, msg = start_download(mid)
+    return {"model_id": mid, "started": started, "message": msg, "status": download_status(mid)}
+
+@app.get("/api/models/{mid}/download/status")
+def model_download_status(mid: str):
+    st = download_status(mid)
+    if st is None:
+        raise HTTPException(404, "model not found")
+    return st
+
+@app.get("/api/models/downloads")
+def model_downloads():
+    return {"downloads": list_downloads()}
 
 @app.post("/api/generate")
 def generate(req: GenerateRequest):

@@ -1,7 +1,7 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useState, useRef } from 'react'
 import { Link } from 'react-router-dom'
-import { Search, Cpu, Filter } from 'lucide-react'
-import { getModels, getHardware, postTelemetry } from '../api'
+import { Search, Cpu, Filter, Download, Loader2, CheckCircle2 } from 'lucide-react'
+import { getModels, getHardware, postTelemetry, downloadModel, listModelDownloads } from '../api'
 
 export default function Models() {
   const [models, setModels] = useState([])
@@ -9,12 +9,23 @@ export default function Models() {
   const [q, setQ] = useState('')
   const [type, setType] = useState('')
   const [maxVram, setMaxVram] = useState('')
+  const [dlStatus, setDlStatus] = useState({})
+  const pollRef = useRef(null)
 
   const load = () => {
     getModels({ q: q || undefined, type: type || undefined, vram: maxVram || undefined }).then(d=>setModels(d.models||[]))
   }
-  useEffect(()=>{ getHardware().then(setHw); load() }, [])
+  const refreshDl = () => listModelDownloads().then(d=>{
+    const map = {}
+    for (const s of (d.downloads||[])) map[s.model_id] = s
+    setDlStatus(map)
+  }).catch(()=>{})
+  useEffect(()=>{ getHardware().then(setHw); load(); refreshDl() }, [])
   useEffect(()=>{ load() }, [q, type, maxVram])
+  useEffect(()=>{
+    pollRef.current = setInterval(refreshDl, 2000)
+    return ()=>{ if(pollRef.current) clearInterval(pollRef.current) }
+  }, [])
 
   return (
     <div className="p-8 max-w-6xl mx-auto space-y-6">
@@ -73,9 +84,28 @@ export default function Models() {
             </div>
             <div className="mt-4 flex gap-2">
               <Link to={`/generate?model=${m.id}`} className="flex-1 text-center px-3 py-2 rounded-lg bg-violet-600/80 hover:bg-violet-600 text-sm font-medium transition">Use</Link>
+              <button onClick={async ()=>{ try { await downloadModel(m.id); refreshDl(); postTelemetry('model_download_started',{model_id:m.id}) } catch(e){} }}
+                disabled={dlStatus[m.id]?.status==='running' || dlStatus[m.id]?.status==='queued'}
+                className="px-3 py-2 rounded-lg bg-emerald-600/80 hover:bg-emerald-600 text-sm font-medium transition disabled:opacity-40 flex items-center gap-1" title="Download model weights to server">
+                {dlStatus[m.id]?.status==='running' || dlStatus[m.id]?.status==='queued' ? <Loader2 className="w-4 h-4 animate-spin"/> : <Download className="w-4 h-4"/>}
+              </button>
               <a href={m.download_url} target="_blank" rel="noreferrer" onClick={()=>postTelemetry('model_download_clicked',{model_id:m.id})}
-                className="px-3 py-2 rounded-lg bg-white/5 hover:bg-white/10 text-sm transition" title="Download model weights">⬇</a>
+                className="px-3 py-2 rounded-lg bg-white/5 hover:bg-white/10 text-sm transition" title="Open on HuggingFace">⬇</a>
             </div>
+            {dlStatus[m.id] && dlStatus[m.id].status !== 'idle' && (
+              <div className="mt-2">
+                <div className="flex items-center justify-between text-[10px] text-white/50 mb-1">
+                  <span>{dlStatus[m.id].status === 'done' ? 'Downloaded' : (dlStatus[m.id].current_file || dlStatus[m.id].stage)}</span>
+                  <span>{dlStatus[m.id].progress}%</span>
+                </div>
+                <div className="w-full h-1.5 bg-white/10 rounded-full overflow-hidden">
+                  <div className={`h-full transition-all ${dlStatus[m.id].status==='done'?'bg-emerald-400':dlStatus[m.id].status==='error'?'bg-red-400':'bg-violet-500'}`}
+                    style={{width: `${dlStatus[m.id].progress||0}%`}}/>
+                </div>
+                {dlStatus[m.id].error && <div className="text-[10px] text-red-400 mt-1">{dlStatus[m.id].error}</div>}
+                {dlStatus[m.id].status==='done' && <div className="text-[10px] text-emerald-400 mt-1 flex items-center gap-1"><CheckCircle2 className="w-3 h-3"/> {dlStatus[m.id].path}</div>}
+              </div>
+            )}
           </div>
         ))}
       </div>
