@@ -45,15 +45,7 @@ def _load_pipeline(repo, model, mid, dtype, device, job_id):
     update_job(job_id, stage="Loading model", progress=5)
 
     candidates = []
-    # Generic auto-detect
-    def _generic():
-        try:
-            return DiffusionPipeline.from_pretrained(repo, torch_dtype=dtype, trust_remote_code=True)
-        except TypeError:
-            return DiffusionPipeline.from_pretrained(repo, torch_dtype=dtype)
-    candidates.append(("DiffusionPipeline", _generic))
-
-    # Model-specific (best effort)
+    # Model-specific first (more reliable than auto-detect)
     mid_l = (mid or "").lower()
     fam_l = (model.get("family") or "").lower()
     specific = []
@@ -71,7 +63,7 @@ def _load_pipeline(repo, model, mid, dtype, device, job_id):
         specific += ["StableVideoDiffusionPipeline"]
     if "animatediff" in mid_l or "animatediff" in fam_l:
         specific += ["AnimateDiffPipeline", "AnimateDiffSDXLPipeline"]
-    if "zeroscope" in mid_l or "modelscope" in mid_l:
+    if "zeroscope" in mid_l or "modelscope" in mid_l or "text-to-video" in fam_l:
         specific += ["TextToVideoSDPipeline"]
 
     import diffusers
@@ -82,6 +74,14 @@ def _load_pipeline(repo, model, mid, dtype, device, job_id):
         def _factory(c=cls):
             return c.from_pretrained(repo, torch_dtype=dtype, trust_remote_code=True)
         candidates.append((cls_name, _factory))
+
+    # Generic auto-detect as fallback
+    def _generic():
+        try:
+            return DiffusionPipeline.from_pretrained(repo, torch_dtype=dtype, trust_remote_code=True)
+        except TypeError:
+            return DiffusionPipeline.from_pretrained(repo, torch_dtype=dtype)
+    candidates.append(("DiffusionPipeline", _generic))
 
     pipe = None
     last_err = None
@@ -120,6 +120,8 @@ def _try_real_generation(job):
     repo = model.get("diffusers_repo") or model["source"]
     if not model.get("diffusers_repo"):
         raise RuntimeError("No diffusers pipeline available for this model")
+    if model.get("type") == "i2v" and not (params.get("input_image") or params.get("input_image_path")):
+        raise RuntimeError("Image-to-video model requires an input image")
     device = "cuda" if h["cuda_available"] else ("mps" if h["mps_available"] else "cpu")
     dtype = torch.float16 if device != "cpu" else torch.float32
 
@@ -232,6 +234,9 @@ def run_job(job_id):
             raise
         except Exception:
             pass
+        model = get_model(job["params"]["model_id"])
+        if not model.get("supports_real_generation"):
+            raise RuntimeError("This model has no diffusers pipeline; real generation not supported")
         out = _try_real_generation(job)
         update_job(job_id, status="done", stage="Done", progress=100, video_path=str(out), real_generation_error=None)
         append_log(job_id, f"Finished: {out.name}")
