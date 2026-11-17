@@ -88,7 +88,7 @@ def _load_pipeline(repo, model, mid, dtype, device, job_id):
     for name, factory in candidates:
         try:
             pipe = factory()
-            append_log(job_id, f"Loaded pipeline: {name}")
+            append_log(job_id, f"Loaded pipeline: {name} ({type(pipe).__name__})")
             break
         except Exception as e:
             last_err = e
@@ -166,16 +166,23 @@ def _try_real_generation(job):
         except Exception as e:
             append_log(job["id"], f"Could not load input image: {e}")
 
+    append_log(job["id"], f"Calling pipeline with: {sorted(kwargs.keys())}")
     try:
         result = pipe(**kwargs)
-    except TypeError as e:
+    except Exception as e:
         append_log(job["id"], f"Retrying call with reduced args: {e}")
         minimal = {}
         if accepted is None or "num_inference_steps" in accepted:
             minimal["num_inference_steps"] = steps
         if accepted is None or "generator" in accepted:
             minimal["generator"] = g
-        result = pipe(prompt, **minimal)
+        # Try prompt as the only/first positional
+        try:
+            result = pipe(prompt, **minimal)
+        except Exception as e2:
+            append_log(job["id"], f"Retry failed: {e2}")
+            # Last resort: call with just prompt
+            result = pipe(prompt)
 
     # Extract frames
     frames = None
