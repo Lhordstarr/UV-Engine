@@ -28,7 +28,7 @@ export default function App() {
               <Video className="w-5 h-5 text-white" />
             </div>
             <div>
-              <div className="font-bold text-lg leading-tight">VideoGen</div>
+              <div className="font-bold text-lg leading-tight">UV-Engine</div>
               <div className="text-xs text-white/40">AI Studio</div>
             </div>
           </div>
