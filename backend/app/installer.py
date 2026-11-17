@@ -62,26 +62,13 @@ def _run(backend, vendor):
         if proc.returncode != 0:
             raise RuntimeError(f"uv sync failed (exit {proc.returncode})")
 
-        # Hardware-aware torch upgrade
-        variant = "cpu"
-        if vendor in ("cuda", "nvidia"):
-            variant = "cuda"
-            _append("Step 2/2: upgrading torch to CUDA build")
-            idx = "https://download.pytorch.org/whl/cu124"
-            cmd = ["uv", "pip", "install", "--upgrade", "torch", "torchvision", "torchaudio", "--index-url", idx]
-        elif vendor in ("amdgpu", "rocm"):
-            variant = "rocm"
-            _append("Step 2/2: upgrading torch to ROCm build")
-            idx = "https://download.pytorch.org/whl/rocm6.2"
-            cmd = ["uv", "pip", "install", "--upgrade", "torch", "torchvision", "torchaudio", "--index-url", idx]
-        elif vendor == "mps":
-            variant = "mps"
-            _append("Step 2/2: torch (MPS support is in the default wheel)")
-            cmd = None
-        else:
-            variant = "cpu"
-            _append("Step 2/2: keeping CPU torch (no supported GPU detected)")
-            cmd = None
+        # Step 2: keep the torch already installed by `uv sync --extra ml`.
+        # PyPI torch (>=2.6) ships CUDA wheels on Linux, which are compatible
+        # with the pinned diffusers. Upgrading to a separate index (cu124/rocm)
+        # previously installed an incompatible torch and broke real generation.
+        variant = "cuda" if vendor in ("cuda", "nvidia") else ("rocm" if vendor in ("amdgpu", "rocm") else ("mps" if vendor == "mps" else "cpu"))
+        _append(f"Step 2/2: keeping torch from uv sync (variant: {variant})")
+        cmd = None
 
         with _lock_state:
             _state["variant"] = variant
