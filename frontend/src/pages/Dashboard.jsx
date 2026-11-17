@@ -24,7 +24,7 @@ export default function Dashboard() {
           <h1 className="text-3xl font-bold bg-gradient-to-r from-white to-white bg-clip-text text-transparent">Dashboard</h1>
           <p className="text-white/50 mt-1">Your local AI video generation studio</p>
         </div>
-        <Link to="/generate" className="px-5 py-2.5 rounded-xl bg-gradient-to-r from-white to-white font-medium hover:opacity-90 transition shadow-lg shadow-white/30 flex items-center gap-2">
+        <Link to="/generate" className="px-5 py-2.5 rounded-xl bg-black border-2 border-white text-white font-medium hover:bg-white hover:text-black transition flex items-center gap-2">
           <Play className="w-4 h-4"/> New Generation
         </Link>
       </header>
