@@ -1,6 +1,6 @@
 import { useEffect, useState, useRef } from 'react'
-import { Download, Film, Cpu, ExternalLink, Loader2, CheckCircle2, Pause, Play } from 'lucide-react'
-import { getModels, getVideos, postTelemetry, downloadModel, pauseModelDownload, listModelDownloads } from '../api'
+import { Download, Film, Cpu, ExternalLink, Loader2, CheckCircle2, Pause, Play, Trash2 } from 'lucide-react'
+import { getModels, getVideos, postTelemetry, downloadModel, pauseModelDownload, listModelDownloads, deleteVideo } from '../api'
 
 function fmtBytes(b) {
   if (typeof b !== 'number' || !isFinite(b)) return '—'
@@ -14,14 +14,19 @@ export default function Downloads() {
   const [videos, setVideos] = useState([])
   const [dlStatus, setDlStatus] = useState({})
   const pollRef = useRef(null)
+  const refreshVideos = () => getVideos().then(d=>setVideos(d.videos||[]))
   useEffect(()=>{
     getModels().then(d=>setModels(d.models||[]))
-    getVideos().then(d=>setVideos(d.videos||[]))
+    refreshVideos()
     const refresh = ()=>listModelDownloads().then(d=>{const m={};for(const s of (d.downloads||[]))m[s.model_id]=s;setDlStatus(m)}).catch(()=>{})
     refresh()
     pollRef.current = setInterval(refresh, 2000)
     return ()=>{ if(pollRef.current) clearInterval(pollRef.current) }
   }, [])
+  const handleDeleteVideo = async (filename) => {
+    if (!confirm('Delete this video?')) return
+    try { await deleteVideo(filename); refreshVideos() } catch(e) {}
+  }
 
   return (
     <div className="p-8 max-w-6xl mx-auto space-y-8">
@@ -95,10 +100,15 @@ export default function Downloads() {
                 <div className="p-3 space-y-2">
                   <div className="text-sm font-medium truncate">{v.filename}</div>
                   <div className="text-xs text-white/40">{(v.size_bytes/1024/1024).toFixed(2)} MB</div>
-                  <a href={v.url} download onClick={()=>postTelemetry('video_downloaded',{filename:v.filename})}
-                    className="flex items-center justify-center gap-2 w-full py-2 rounded-lg bg-white/80 hover:bg-white text-black text-sm font-medium transition">
-                    <Download className="w-4 h-4"/> Download
-                  </a>
+                  <div className="flex gap-2">
+                    <a href={v.url} download onClick={()=>postTelemetry('video_downloaded',{filename:v.filename})}
+                      className="flex-1 flex items-center justify-center gap-2 py-2 rounded-lg bg-white/80 hover:bg-white text-black text-sm font-medium transition">
+                      <Download className="w-4 h-4"/> Download
+                    </a>
+                    <button onClick={()=>handleDeleteVideo(v.filename)} className="px-3 py-2 rounded-lg bg-white/10 hover:bg-red-500/30 text-white text-sm transition" title="Delete video">
+                      <Trash2 className="w-4 h-4"/>
+                    </button>
+                  </div>
                 </div>
               </div>
             ))}

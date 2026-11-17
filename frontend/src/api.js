@@ -15,6 +15,8 @@ export const generate = (p) => api.post('/generate', p).then(r=>r.data)
 export const getJobs = () => api.get('/jobs').then(r=>r.data)
 export const getJob = (id) => api.get(`/jobs/${id}`).then(r=>r.data)
 export const getVideos = () => api.get('/videos').then(r=>r.data)
+export const deleteVideo = (filename) => api.delete(`/videos/${filename}`).then(r=>r.data)
+export const deleteJob = (id) => api.delete(`/jobs/${id}`).then(r=>r.data)
 export const uploadImage = (file) => {
   const fd = new FormData(); fd.append('file', file)
   return api.post('/upload-image', fd).then(r=>r.data)

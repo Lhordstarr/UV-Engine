@@ -11,7 +11,7 @@ from .hardware import detect_hardware, estimate_vram
 from .models_registry import list_models, get_model
 from .model_downloader import start_download, status as download_status, list_downloads, is_downloaded, MODELS_DIR, pause_download
 from .settings import get_settings, set_backend_enabled, is_backend_enabled
-from .jobs import new_job, get_job, list_jobs, list_videos, VIDEOS_DIR, update_job
+from .jobs import new_job, get_job, list_jobs, list_videos, VIDEOS_DIR, update_job, delete_video, delete_job
 from .generator import submit
 from .telemetry import record, stats
 from .resources import resource_report
@@ -175,6 +175,18 @@ def video_file(filename: str):
     if not p.exists():
         raise HTTPException(404, "not found")
     return FileResponse(p, media_type="video/mp4", filename=filename)
+
+@app.delete("/api/videos/{filename}")
+def video_delete(filename: str):
+    if not delete_video(filename):
+        raise HTTPException(404, "not found")
+    return {"ok": True, "deleted": filename}
+
+@app.delete("/api/jobs/{jid}")
+def job_delete(jid: str):
+    if not delete_job(jid):
+        raise HTTPException(404, "not found")
+    return {"ok": True, "deleted": jid}
 
 class TelemetryRequest(BaseModel):
     event: str

@@ -99,6 +99,28 @@ def list_videos():
             })
     return out
 
+def delete_video(filename):
+    p = VIDEOS_DIR / filename
+    if not p.exists() or not p.is_file():
+        return False
+    try:
+        p.unlink()
+        return True
+    except Exception:
+        return False
+
+def delete_job(jid):
+    with _lock:
+        _jobs.pop(jid, None)
+    p = JOBS_DIR / f"{jid}.json"
+    if p.exists():
+        try:
+            p.unlink()
+            return True
+        except Exception:
+            return False
+    return True
+
 def _persist(job):
     try:
         (JOBS_DIR / f"{job['id']}.json").write_text(json.dumps(job, indent=2, default=str))
