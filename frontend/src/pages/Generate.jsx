@@ -145,9 +145,7 @@ export default function Generate() {
               </div>
             )}
 
-            <div className="flex items-center gap-3">
-              <span className={`text-xs ${realGenAvailable?'text-white':'text-white'}`}>Real gen: {realGenReason}</span>
-            </div>
+
             {!realGenAvailable && (
               <div className="text-xs text-white/40">
                 Real generation is unavailable (missing PyTorch/diffusers). Run `./start.sh` on a GPU machine, or install ML deps with `uv sync --extra ml`. (Demo mode removed.)
