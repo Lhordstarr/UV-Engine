@@ -11,7 +11,7 @@ function fmtMB(mb) {
   if (typeof mb !== 'number') return '—'
   return mb >= 1024 ? `${(mb / 1024).toFixed(1)} GB` : `${mb} MB`
 }
-const bandColor = { ok: 'bg-emerald-400', warn: 'bg-amber-400', high: 'bg-red-400', none: 'bg-white/10' }
+const bandColor = { ok: 'bg-white', warn: 'bg-white', high: 'bg-red-400', none: 'bg-white/10' }
 
 export default function Resources() {
   const [r, setR] = useState(null)
@@ -66,7 +66,7 @@ export default function Resources() {
               const used = r.gpu.memUsedMB; const total = r.gpu.memTotalMB
               const hasTotal = typeof used === 'number' && typeof total === 'number' && total > 0
               const pct = hasTotal ? (used/total)*100 : 0
-              return <div className={`h-full ${bandColor[loadBand(pct)] || 'bg-violet-400'} transition-all`} style={{width: `${Math.min(100,Math.max(0,pct))}%`}}/>
+              return <div className={`h-full ${bandColor[loadBand(pct)] || 'bg-white'} transition-all`} style={{width: `${Math.min(100,Math.max(0,pct))}%`}}/>
             })()}
           </div>
         </>

@@ -21,10 +21,10 @@ export default function Dashboard() {
     <div className="p-8 space-y-8 max-w-6xl mx-auto">
       <header className="flex items-end justify-between">
         <div>
-          <h1 className="text-3xl font-bold bg-gradient-to-r from-violet-400 to-cyan-400 bg-clip-text text-transparent">Dashboard</h1>
+          <h1 className="text-3xl font-bold bg-gradient-to-r from-white to-white bg-clip-text text-transparent">Dashboard</h1>
           <p className="text-white/50 mt-1">Your local AI video generation studio</p>
         </div>
-        <Link to="/generate" className="px-5 py-2.5 rounded-xl bg-gradient-to-r from-violet-600 to-cyan-500 font-medium hover:opacity-90 transition shadow-lg shadow-violet-500/30 flex items-center gap-2">
+        <Link to="/generate" className="px-5 py-2.5 rounded-xl bg-gradient-to-r from-white to-white font-medium hover:opacity-90 transition shadow-lg shadow-white/30 flex items-center gap-2">
           <Play className="w-4 h-4"/> New Generation
         </Link>
       </header>
@@ -39,7 +39,7 @@ export default function Dashboard() {
       <section className="glass rounded-2xl p-6">
         <div className="flex items-center justify-between mb-4">
           <h2 className="text-lg font-semibold">Recent Jobs</h2>
-          <Link to="/library" className="text-sm text-violet-400 hover:text-violet-300">View all →</Link>
+          <Link to="/library" className="text-sm text-white hover:text-white">View all →</Link>
         </div>
         {jobs.length === 0 ? (
           <div className="text-white/40 text-sm py-8 text-center">No jobs yet. Start your first generation.</div>
@@ -47,14 +47,14 @@ export default function Dashboard() {
           <div className="space-y-2">
             {jobs.slice(0,6).map(j=>(
               <div key={j.id} className="flex items-center gap-4 px-4 py-3 rounded-xl bg-white/5 hover:bg-white/8 transition">
-                <div className={`w-2 h-2 rounded-full ${j.status==='done'?'bg-emerald-400':j.status==='error'?'bg-red-400':j.status==='running'?'bg-amber-400 animate-pulse':'bg-white/30'}`}/>
+                <div className={`w-2 h-2 rounded-full ${j.status==='done'?'bg-white':j.status==='error'?'bg-red-400':j.status==='running'?'bg-white animate-pulse':'bg-white/30'}`}/>
                 <div className="flex-1 min-w-0">
                   <div className="text-sm font-medium truncate">{j.params?.prompt}</div>
                   <div className="text-xs text-white/40">{j.params?.model_id} · {j.status}</div>
                 </div>
                 <div className="text-xs text-white/40">{j.progress}%</div>
                 {j.status==='done' && j.video_path && (
-                  <Link to="/library" className="text-xs text-cyan-400">View</Link>
+                  <Link to="/library" className="text-xs text-white">View</Link>
                 )}
               </div>
             ))}
@@ -69,7 +69,7 @@ export default function Dashboard() {
             <Link key={m.id} to={`/generate?model=${m.id}`} className="p-4 rounded-xl bg-white/5 hover:bg-white/10 transition border border-white/5">
               <div className="font-medium">{m.name}</div>
               <div className="text-xs text-white/40 mt-1">{m.vram_estimate_gb} GB VRAM · {m.type}</div>
-              <div className="text-xs text-emerald-400 mt-2">{m.fits ? 'Fits your hardware' : 'Needs more VRAM'}</div>
+              <div className="text-xs text-white mt-2">{m.fits ? 'Fits your hardware' : 'Needs more VRAM'}</div>
             </Link>
           ))}
         </div>
@@ -82,7 +82,7 @@ function StatCard({icon:Icon, label, value, sub}) {
   return (
     <div className="glass rounded-2xl p-5">
       <div className="flex items-center gap-3 mb-3">
-        <div className="w-9 h-9 rounded-lg bg-white/5 flex items-center justify-center"><Icon className="w-4 h-4 text-violet-400"/></div>
+        <div className="w-9 h-9 rounded-lg bg-white/5 flex items-center justify-center"><Icon className="w-4 h-4 text-white"/></div>
         <div className="text-xs text-white/50 uppercase tracking-wide">{label}</div>
       </div>
       <div className="text-2xl font-bold">{value}</div>

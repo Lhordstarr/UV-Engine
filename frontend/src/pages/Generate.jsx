@@ -101,7 +101,7 @@ export default function Generate() {
   return (
     <div className="p-8 max-w-6xl mx-auto space-y-6">
       <header>
-        <h1 className="text-3xl font-bold bg-gradient-to-r from-violet-400 to-cyan-400 bg-clip-text text-transparent">Generate Video</h1>
+        <h1 className="text-3xl font-bold bg-gradient-to-r from-white to-white bg-clip-text text-transparent">Generate Video</h1>
         <p className="text-white/50 mt-1">Compose a prompt and pick a model. VRAM estimate shown per model.</p>
       </header>
 
@@ -112,7 +112,7 @@ export default function Generate() {
               <label className="text-xs text-white/50 uppercase tracking-wide">Prompt</label>
               <textarea value={prompt} onChange={e=>setPrompt(e.target.value)} rows={4}
                 placeholder="A cinematic shot of a futuristic city at sunset, flying cars, neon lights…"
-                className="mt-2 w-full px-4 py-3 rounded-xl bg-white/5 border border-white/10 focus:border-violet-500 outline-none text-sm resize-none"/>
+                className="mt-2 w-full px-4 py-3 rounded-xl bg-white/5 border border-white/10 focus:border-white outline-none text-sm resize-none"/>
             </div>
 
             <div>
@@ -146,7 +146,7 @@ export default function Generate() {
             )}
 
             <div className="flex items-center gap-3">
-              <span className={`text-xs ${realGenAvailable?'text-emerald-400':'text-amber-400'}`}>Real gen: {realGenReason}</span>
+              <span className={`text-xs ${realGenAvailable?'text-white':'text-white'}`}>Real gen: {realGenReason}</span>
             </div>
             {!realGenAvailable && (
               <div className="text-xs text-white/40">
@@ -154,13 +154,13 @@ export default function Generate() {
               </div>
             )}
             {realGenAvailable && backends?.torch?.device !== 'gpu' && (
-              <div className="text-xs text-amber-400/80">
+              <div className="text-xs text-white/80">
                 CPU mode: real generation works but is very slow and memory-heavy.
               </div>
             )}
 
             <button onClick={submit} disabled={!prompt.trim() || !modelId}
-              className="w-full py-3 rounded-xl bg-gradient-to-r from-violet-600 to-cyan-500 font-semibold hover:opacity-90 transition disabled:opacity-40 disabled:cursor-not-allowed flex items-center justify-center gap-2 shadow-lg shadow-violet-500/30">
+              className="w-full py-3 rounded-xl bg-gradient-to-r from-white to-white text-black font-semibold hover:opacity-90 transition disabled:opacity-40 disabled:cursor-not-allowed flex items-center justify-center gap-2 shadow-lg shadow-white/30">
               <Play className="w-4 h-4"/> Generate
             </button>
             {error && <div className="text-sm text-red-400 flex items-center gap-2"><AlertCircle className="w-4 h-4"/>{error}</div>}
@@ -177,7 +177,7 @@ export default function Generate() {
                 <Row label="Params" value={`${model.params_b}B`}/>
                 <Row label="VRAM est. (default)" value={`${model.vram_estimate_gb} GB`} accent/>
                 <Row label="VRAM est. (current)" value={vramEst ? `${vramEst} GB` : '…'} accent/>
-                <Row label="Fits hardware" value={model.fits ? 'Yes' : 'No'} color={model.fits?'text-emerald-400':'text-red-400'}/>
+                <Row label="Fits hardware" value={model.fits ? 'Yes' : 'No'} color={model.fits?'text-white':'text-red-400'}/>
                 <Row label="License" value={model.license}/>
               </div>
             ) : <div className="text-white/40 text-sm">Select a model</div>}
@@ -191,21 +191,21 @@ export default function Generate() {
               </div>
               <div className="text-xs text-white/50">{job.stage}</div>
               <div className="w-full h-2 bg-white/10 rounded-full overflow-hidden">
-                <div className="h-full bg-gradient-to-r from-violet-500 to-cyan-400 transition-all" style={{width: `${job.progress||0}%`}}/>
+                <div className="h-full bg-gradient-to-r from-white to-white transition-all" style={{width: `${job.progress||0}%`}}/>
               </div>
               <div className="text-xs text-white/40">{job.progress||0}%</div>
               {job.status==='done' && job.video_path && (
                 <div className="space-y-2">
                   <video src={`/api/videos/${job.video_path.split('/').pop()}`} controls className="w-full rounded-lg" />
                   <a href={`/api/videos/${job.video_path.split('/').pop()}`} download
-                    className="flex items-center justify-center gap-2 w-full py-2 rounded-lg bg-emerald-600/80 hover:bg-emerald-600 text-sm font-medium transition">
+                    className="flex items-center justify-center gap-2 w-full py-2 rounded-lg bg-white/80 hover:bg-white text-black text-sm font-medium transition">
                     <Download className="w-4 h-4"/> Download
                   </a>
                 </div>
               )}
               {job.status==='error' && <div className="text-xs text-red-400">{job.error}</div>}
               {job.real_generation_error && (
-                <div className="text-xs text-amber-400">Real generation unavailable: {job.real_generation_error}</div>
+                <div className="text-xs text-white">Real generation unavailable: {job.real_generation_error}</div>
               )}
               {job.logs?.length>0 && (
                 <details className="text-xs">
@@ -237,7 +237,7 @@ export default function Generate() {
                     {Object.entries(stats.model_usage).sort((a,b)=>b[1]-a[1]).slice(0,5).map(([k,v])=>(
                       <div key={k} className="flex items-center justify-between text-xs">
                         <span className="text-white/60 truncate">{k}</span>
-                        <span className="text-violet-300">{v}</span>
+                        <span className="text-white">{v}</span>
                       </div>
                     ))}
                   </div>
@@ -256,7 +256,7 @@ function NumField({label, value, onChange}) {
     <div>
       <label className="text-xs text-white/50 uppercase tracking-wide">{label}</label>
       <input type="number" value={value} onChange={e=>onChange(e.target.value)}
-        className="mt-1 w-full px-3 py-2 rounded-lg bg-white/5 border border-white/10 focus:border-violet-500 outline-none text-sm"/>
+        className="mt-1 w-full px-3 py-2 rounded-lg bg-white/5 border border-white/10 focus:border-white outline-none text-sm"/>
     </div>
   )
 }
@@ -264,11 +264,11 @@ function Row({label, value, accent, color}) {
   return (
     <div className="flex items-center justify-between">
       <span className="text-white/50">{label}</span>
-      <span className={`font-medium ${accent?'text-violet-300':''} ${color||''}`}>{value}</span>
+      <span className={`font-medium ${accent?'text-white':''} ${color||''}`}>{value}</span>
     </div>
   )
 }
 function StatusBadge({status}) {
-  const map = { done:'bg-emerald-500/15 text-emerald-400', error:'bg-red-500/15 text-red-400', running:'bg-amber-500/15 text-amber-400', queued:'bg-white/10 text-white/50' }
+  const map = { done:'bg-white/15 text-white', error:'bg-red-500/15 text-red-400', running:'bg-white/15 text-white', queued:'bg-white/10 text-white/50' }
   return <span className={`text-xs px-2 py-1 rounded-full ${map[status]||'bg-white/10'}`}>{status}</span>
 }

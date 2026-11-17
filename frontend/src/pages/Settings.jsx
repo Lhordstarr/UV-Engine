@@ -10,12 +10,12 @@ export default function Settings() {
   return (
     <div className="p-8 max-w-4xl mx-auto space-y-6">
       <header>
-        <h1 className="text-3xl font-bold bg-gradient-to-r from-violet-400 to-cyan-400 bg-clip-text text-transparent">Settings</h1>
+        <h1 className="text-3xl font-bold bg-gradient-to-r from-white to-white bg-clip-text text-transparent">Settings</h1>
         <p className="text-white/50 mt-1">Hardware detection and environment.</p>
       </header>
 
       <div className="glass rounded-2xl p-6 space-y-4">
-        <h2 className="font-semibold flex items-center gap-2"><HardDrive className="w-4 h-4 text-violet-400"/> Hardware</h2>
+        <h2 className="font-semibold flex items-center gap-2"><HardDrive className="w-4 h-4 text-white"/> Hardware</h2>
         {hw ? (
           <div className="space-y-2 text-sm">
             <Row label="Platform" value={hw.platform}/>
@@ -35,7 +35,7 @@ export default function Settings() {
               {hw.gpus.map((g,i)=>(
                 <div key={i} className="flex items-center justify-between px-3 py-2 rounded-lg bg-white/5 text-sm">
                   <span>{g.name}</span>
-                  <span className="text-violet-300">{g.vram_gb} GB · {g.backend}</span>
+                  <span className="text-white">{g.vram_gb} GB · {g.backend}</span>
                 </div>
               ))}
             </div>
@@ -44,7 +44,7 @@ export default function Settings() {
       </div>
 
       <div className="glass rounded-2xl p-6 space-y-3">
-        <h2 className="font-semibold flex items-center gap-2"><Cpu className="w-4 h-4 text-violet-400"/> Model fit summary</h2>
+        <h2 className="font-semibold flex items-center gap-2"><Cpu className="w-4 h-4 text-white"/> Model fit summary</h2>
         <div className="text-sm text-white/60">
           {models.filter(m=>m.fits).length} of {models.length} models fit your detected VRAM ({hw?.total_vram_gb} GB).
         </div>
@@ -66,7 +66,7 @@ function Row({label, value, accent}) {
   return (
     <div className="flex items-center justify-between">
       <span className="text-white/50">{label}</span>
-      <span className={`font-medium ${accent?'text-violet-300':''}`}>{value}</span>
+      <span className={`font-medium ${accent?'text-white':''}`}>{value}</span>
     </div>
   )
 }

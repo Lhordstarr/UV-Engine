@@ -10,7 +10,7 @@ export default function Library() {
   return (
     <div className="p-8 max-w-6xl mx-auto space-y-6">
       <header>
-        <h1 className="text-3xl font-bold bg-gradient-to-r from-violet-400 to-cyan-400 bg-clip-text text-transparent">Library</h1>
+        <h1 className="text-3xl font-bold bg-gradient-to-r from-white to-white bg-clip-text text-transparent">Library</h1>
         <p className="text-white/50 mt-1">Your generated videos. Download anytime.</p>
       </header>
 
@@ -24,7 +24,7 @@ export default function Library() {
               <div className="p-4 space-y-2">
                 <div className="text-sm font-medium truncate">{v.filename}</div>
                 <div className="text-xs text-white/40">{(v.size_bytes/1024/1024).toFixed(2)} MB · {new Date(v.created_at*1000).toLocaleString()}</div>
-                <a href={v.url} download className="flex items-center justify-center gap-2 w-full py-2 rounded-lg bg-violet-600/80 hover:bg-violet-600 text-sm font-medium transition">
+                <a href={v.url} download className="flex items-center justify-center gap-2 w-full py-2 rounded-lg bg-white/80 hover:bg-white text-black text-sm font-medium transition">
                   <Download className="w-4 h-4"/> Download
                 </a>
               </div>
