@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react'
 import { Cpu, CheckCircle2, XCircle, AlertCircle, Power, Download, Loader2 } from 'lucide-react'
 import api from '../api'
-import { toggleBackend, listModelDownloads } from '../api'
+import { toggleBackend, listModelDownloads, installBackend } from '../api'
 
 const deviceColor = { gpu: 'bg-white/15 text-white', cpu: 'bg-white/15 text-white', none: 'bg-red-500/15 text-red-400', hybrid: 'bg-white/15 text-white', unknown: 'bg-white/10 text-white/50' }
 
@@ -9,8 +9,14 @@ export default function Backends() {
   const [data, setData] = useState(null)
   const [install, setInstall] = useState(null)
   const [toggling, setToggling] = useState(null)
+  const [installing, setInstalling] = useState(null)
   const [downloads, setDownloads] = useState([])
   const refreshBackends = () => api.get('/backends').then(r=>setData(r.data)).catch(()=>{})
+  const handleInstall = async (b) => {
+    setInstalling(b.id)
+    try { await installBackend(b.id); await refreshBackends() } catch(e) {}
+    setInstalling(null)
+  }
   const handleToggle = async (b) => {
     setToggling(b.id)
     try { await toggleBackend(b.id, !b.enabled); await refreshBackends() } catch(e) {}
@@ -90,6 +96,16 @@ export default function Backends() {
                   title={b.enabled?'Enabled - click to disable':'Disabled - click to enable'}>
                   <Power className="w-3 h-3"/>{b.enabled?'On':'Off'}
                 </button>
+                {b.device === 'none' && b.id === 'onnxruntime' && (
+                  <button onClick={()=>handleInstall(b)} disabled={installing===b.id}
+                    className="ml-2 flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-medium bg-white/15 text-white hover:bg-white/25 transition disabled:opacity-40">
+                    {installing===b.id ? <Loader2 className="w-3 h-3 animate-spin"/> : <Download className="w-3 h-3"/>}
+                    Install
+                  </button>
+                )}
+                {b.device === 'none' && b.id === 'sdcpp' && (
+                  <span className="ml-2 text-[10px] text-white/40">install via package manager</span>
+                )}
               </div>
               <div className="mt-3 text-xs text-white/40">
                 <div><span className="text-white/60">Optional:</span> {b.optional ? 'yes' : 'no'} · <span className="text-white/60">Meets requirements:</span> {b.meets_requirements ? 'yes' : 'no'} · {b.requirements?.join(', ')}</div>

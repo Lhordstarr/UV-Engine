@@ -267,6 +267,11 @@ def install_ml(backend: str = "ml"):
     started, msg = start_install(backend)
     return {"started": started, "message": msg, "status": install_status()["status"]}
 
+@app.post("/api/backends/install/{bid}")
+def install_backend(bid: str):
+    started, msg = start_install(bid)
+    return {"backend": bid, "started": started, "message": msg, "status": install_status()["status"]}
+
 @app.get("/api/backends/install-ml/status")
 def install_ml_status():
     return install_status()

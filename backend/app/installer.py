@@ -32,6 +32,11 @@ def _detect_gpu():
     except Exception:
         return "cpu", None
 
+_OPTIONAL_PACKAGES = {
+    "onnxruntime": "onnxruntime",
+}
+
+
 def start_install(backend="ml"):
     with _lock_state:
         if _state["status"] == "running":
@@ -40,12 +45,47 @@ def start_install(backend="ml"):
         _state["log"] = []
         _state["started_at"] = time.time()
         _state["finished_at"] = None
-    vendor, gpu = _detect_gpu()
-    with _lock_state:
-        _state["hardware"] = vendor
-    t = threading.Thread(target=_run, args=(backend, vendor), daemon=True)
+    if backend == "ml":
+        vendor, gpu = _detect_gpu()
+        with _lock_state:
+            _state["hardware"] = vendor
+        t = threading.Thread(target=_run, args=(backend, vendor), daemon=True)
+        t.start()
+        return True, "started"
+    # optional backend install
+    pkg = _OPTIONAL_PACKAGES.get(backend)
+    if not pkg:
+        with _lock_state:
+            _state["status"] = "idle"
+        return False, f"no installer for {backend}"
+    t = threading.Thread(target=_run_optional, args=(backend, pkg), daemon=True)
     t.start()
     return True, "started"
+
+
+def _run_optional(backend, pkg):
+    try:
+        _append(f"Installing optional backend: {backend} ({pkg})")
+        from pathlib import Path as _Path
+        _PROJECT_ROOT = _Path(__file__).resolve().parent.parent.parent
+        BACKEND_DIR = _PROJECT_ROOT / "backend"
+        cmd = ["uv", "pip", "install", "--python", str(BACKEND_DIR / ".venv" / "bin" / "python"), pkg]
+        proc = subprocess.Popen(cmd, cwd=str(BACKEND_DIR),
+                                 stdout=subprocess.PIPE, stderr=subprocess.STDOUT, text=True)
+        for line in proc.stdout:
+            _append(line.rstrip())
+        proc.wait()
+        if proc.returncode != 0:
+            raise RuntimeError(f"install failed (exit {proc.returncode})")
+        with _lock_state:
+            _state["status"] = "done"
+            _state["finished_at"] = time.time()
+        _append(f"Done. Installed: {backend}")
+    except Exception as e:
+        with _lock_state:
+            _state["status"] = "error"
+            _state["finished_at"] = time.time()
+        _append(f"ERROR: {e}")
 
 def _run(backend, vendor):
     try:
