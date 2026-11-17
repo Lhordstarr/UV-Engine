@@ -95,18 +95,22 @@ export default function Generate() {
   }
 
   const startPoll = (id) => {
-    if(pollRef.current) clearInterval(pollRef.current)
-    pollRef.current = setInterval(async ()=>{
+    if(pollRef.current) { pollRef.current.close(); pollRef.current=null }
+    const es = new EventSource(`/api/jobs/${id}/events`)
+    pollRef.current = es
+    es.onmessage = (e) => {
       try {
-        const j = await getJob(id)
+        const j = JSON.parse(e.data)
+        if (j.error) return
         setJob(j)
         if(j.status==='done' || j.status==='error' || j.status==='cancelled'){
-          clearInterval(pollRef.current); pollRef.current=null
+          es.close(); pollRef.current=null
           refreshStats()
           if(j.status==='done') postTelemetry('video_downloaded_view', { job_id: j.id })
         }
-      } catch(e){}
-    }, 1000)
+      } catch(err) {}
+    }
+    es.onerror = () => { es.close(); pollRef.current=null }
   }
 
   useEffect(()=>{
@@ -116,7 +120,7 @@ export default function Generate() {
     const f = frames?+frames:(model?.default_frames||16)
     estimate({ model_id: modelId, width: w, height: h, num_frames: f }).then(r=>setVramEst(r.vram_gb)).catch(()=>setVramEst(null))
   }, [modelId, width, height, frames])
-  useEffect(()=>()=>{ if(pollRef.current) clearInterval(pollRef.current) }, [])
+  useEffect(()=>()=>{ if(pollRef.current && pollRef.current.close) pollRef.current.close() }, [])
 
   return (
     <div className="p-8 max-w-6xl mx-auto space-y-6">

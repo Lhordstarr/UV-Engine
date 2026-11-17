@@ -2,10 +2,10 @@
 from fastapi import FastAPI, UploadFile, File, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
-from fastapi.responses import FileResponse, JSONResponse
+from fastapi.responses import FileResponse, JSONResponse, StreamingResponse
 from pydantic import BaseModel
 from pathlib import Path
-import os, shutil
+import os, shutil, asyncio, json
 
 from .hardware import detect_hardware, estimate_vram
 from .models_registry import list_models, get_model
@@ -73,6 +73,41 @@ def models(vram: float | None = None, type: str | None = None, q: str | None = N
 @app.get("/api/models/downloads")
 def model_downloads():
     return {"downloads": list_downloads()}
+
+@app.get("/api/models/downloads/events")
+async def model_downloads_events():
+    async def gen():
+        while True:
+            try:
+                data = {"downloads": list_downloads()}
+                yield f"data: {json.dumps(data)}\n\n"
+                # stop if all done/idle (no active downloads)
+                active = any(d.get("status") in ("running", "queued", "paused") for d in data["downloads"])
+                if not active:
+                    break
+            except Exception as e:
+                yield f"data: {json.dumps({'error': str(e)})}\n\n"
+                break
+            await asyncio.sleep(0.5)
+    return StreamingResponse(gen(), media_type="text/event-stream")
+
+@app.get("/api/jobs/{jid}/events")
+async def job_events(jid: str):
+    async def gen():
+        while True:
+            try:
+                j = get_job(jid)
+                if not j:
+                    yield f"data: {json.dumps({'error': 'not found'})}\n\n"
+                    break
+                yield f"data: {json.dumps(j)}\n\n"
+                if j.get("status") in ("done", "error", "cancelled"):
+                    break
+            except Exception as e:
+                yield f"data: {json.dumps({'error': str(e)})}\n\n"
+                break
+            await asyncio.sleep(0.5)
+    return StreamingResponse(gen(), media_type="text/event-stream")
 
 @app.get("/api/models/{mid}")
 def model_detail(mid: str):

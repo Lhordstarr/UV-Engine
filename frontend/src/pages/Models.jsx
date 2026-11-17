@@ -31,13 +31,21 @@ export default function Models() {
     if (!confirm('Delete downloaded weights for this model?')) return
     try { await deleteModelDownload(id); refreshDl(); load() } catch(e) {}
   }
+  useEffect(()=>{
+    const es = new EventSource('/api/models/downloads/events')
+    es.onmessage = (e) => {
+      try {
+        const d = JSON.parse(e.data)
+        const map = {}
+        for (const s of (d.downloads||[])) map[s.model_id] = s
+        setDlStatus(map)
+      } catch(err) {}
+    }
+    es.onerror = () => {}
+    return ()=>{ es.close() }
+  }, [])
   useEffect(()=>{ getHardware().then(setHw); load(); refreshDl() }, [])
   useEffect(()=>{ load() }, [q, type, maxVram])
-  useEffect(()=>{
-    pollRef.current = setInterval(refreshDl, 2000)
-    return ()=>{ if(pollRef.current) clearInterval(pollRef.current) }
-  }, [])
-
   return (
     <div className="p-8 max-w-6xl mx-auto space-y-6">
       <header>

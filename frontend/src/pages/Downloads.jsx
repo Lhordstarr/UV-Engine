@@ -13,7 +13,6 @@ export default function Downloads() {
   const [models, setModels] = useState([])
   const [videos, setVideos] = useState([])
   const [dlStatus, setDlStatus] = useState({})
-  const pollRef = useRef(null)
   const refreshVideos = () => getVideos().then(d=>setVideos(d.videos||[]))
   const refreshModels = () => getModels().then(d=>setModels(d.models||[]))
   const handleDeleteModel = async (id) => {
@@ -23,10 +22,17 @@ export default function Downloads() {
   useEffect(()=>{
     getModels().then(d=>setModels(d.models||[]))
     refreshVideos()
-    const refresh = ()=>listModelDownloads().then(d=>{const m={};for(const s of (d.downloads||[]))m[s.model_id]=s;setDlStatus(m)}).catch(()=>{})
-    refresh()
-    pollRef.current = setInterval(refresh, 2000)
-    return ()=>{ if(pollRef.current) clearInterval(pollRef.current) }
+    const es = new EventSource('/api/models/downloads/events')
+    es.onmessage = (e) => {
+      try {
+        const d = JSON.parse(e.data)
+        const m = {}
+        for (const s of (d.downloads||[])) m[s.model_id] = s
+        setDlStatus(m)
+      } catch(err) {}
+    }
+    es.onerror = () => {}
+    return ()=>{ es.close() }
   }, [])
   const handleDeleteVideo = async (filename) => {
     if (!confirm('Delete this video?')) return
