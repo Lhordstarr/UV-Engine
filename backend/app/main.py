@@ -283,13 +283,14 @@ if FRONTEND_DIST.exists():
     @app.exception_handler(404)
     async def _spa_fallback(_request: _Req, _exc):
         path = _request.url.path
+        detail = getattr(_exc, "detail", "Not Found")
         if path.startswith("/api"):
-            return JSONResponse({"detail": "Not Found"}, status_code=404)
+            return JSONResponse({"detail": detail}, status_code=404)
         # Don't mask missing static assets as the SPA
         last = path.rsplit("/", 1)[-1]
         if "." in last:
-            return JSONResponse({"detail": "Not Found"}, status_code=404)
+            return JSONResponse({"detail": detail}, status_code=404)
         index = FRONTEND_DIST / "index.html"
         if index.exists():
             return _FR(index)
-        return JSONResponse({"detail": "Not Found"}, status_code=404)
+        return JSONResponse({"detail": detail}, status_code=404)
