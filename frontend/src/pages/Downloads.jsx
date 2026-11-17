@@ -1,6 +1,6 @@
 import { useEffect, useState, useRef } from 'react'
 import { Download, Film, Cpu, ExternalLink, Loader2, CheckCircle2, Pause, Play, Trash2 } from 'lucide-react'
-import { getModels, getVideos, postTelemetry, downloadModel, pauseModelDownload, listModelDownloads, deleteVideo } from '../api'
+import { getModels, getVideos, postTelemetry, downloadModel, pauseModelDownload, deleteModelDownload, listModelDownloads, deleteVideo } from '../api'
 
 function fmtBytes(b) {
   if (typeof b !== 'number' || !isFinite(b)) return '—'
@@ -15,6 +15,11 @@ export default function Downloads() {
   const [dlStatus, setDlStatus] = useState({})
   const pollRef = useRef(null)
   const refreshVideos = () => getVideos().then(d=>setVideos(d.videos||[]))
+  const refreshModels = () => getModels().then(d=>setModels(d.models||[]))
+  const handleDeleteModel = async (id) => {
+    if (!confirm('Delete downloaded weights for this model?')) return
+    try { await deleteModelDownload(id); refreshModels() } catch(e) {}
+  }
   useEffect(()=>{
     getModels().then(d=>setModels(d.models||[]))
     refreshVideos()
@@ -68,6 +73,11 @@ export default function Downloads() {
                   className="flex items-center gap-2 px-4 py-2 rounded-lg bg-white/5 hover:bg-white/10 text-sm font-medium transition">
                   <ExternalLink className="w-4 h-4"/> HF
                 </a>
+                {m.downloaded && (
+                  <button onClick={()=>handleDeleteModel(m.id)} className="px-3 py-2 rounded-lg bg-white/10 hover:bg-red-500/30 text-white text-sm transition" title="Delete downloaded weights">
+                    <Trash2 className="w-4 h-4"/>
+                  </button>
+                )}
               </div>
               {st && st.status !== 'idle' && st.status !== 'done' && (
                 <div className="mt-2">

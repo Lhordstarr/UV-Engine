@@ -9,7 +9,7 @@ import os, shutil
 
 from .hardware import detect_hardware, estimate_vram
 from .models_registry import list_models, get_model
-from .model_downloader import start_download, status as download_status, list_downloads, is_downloaded, MODELS_DIR, pause_download
+from .model_downloader import start_download, status as download_status, list_downloads, is_downloaded, MODELS_DIR, pause_download, delete_download
 from .settings import get_settings, set_backend_enabled, is_backend_enabled
 from .jobs import new_job, get_job, list_jobs, list_videos, VIDEOS_DIR, update_job, delete_video, delete_job
 from .generator import submit
@@ -115,6 +115,15 @@ def model_download_pause(mid: str):
         raise HTTPException(404, "model not found")
     ok, msg = pause_download(mid)
     return {"model_id": mid, "ok": ok, "message": msg, "status": download_status(mid)}
+
+@app.delete("/api/models/{mid}/download")
+def model_download_delete(mid: str):
+    m = get_model(mid)
+    if not m:
+        raise HTTPException(404, "model not found")
+    if not delete_download(mid):
+        raise HTTPException(404, "not downloaded")
+    return {"ok": True, "deleted": mid}
 
 @app.post("/api/generate")
 def generate(req: GenerateRequest):

@@ -286,3 +286,18 @@ def is_downloaded(model_id):
         return any(dest.iterdir())
     except Exception:
         return False
+
+def delete_download(model_id):
+    import shutil
+    dest = MODELS_DIR / model_id
+    if not dest.exists():
+        return False
+    try:
+        shutil.rmtree(dest)
+        # reset state
+        with _lock:
+            if model_id in _state:
+                del _state[model_id]
+        return True
+    except Exception:
+        return False

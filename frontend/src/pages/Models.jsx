@@ -1,7 +1,7 @@
 import { useEffect, useState, useRef } from 'react'
 import { Link } from 'react-router-dom'
-import { Search, Cpu, Filter, Download, Loader2, CheckCircle2, Pause, Play } from 'lucide-react'
-import { getModels, getHardware, postTelemetry, downloadModel, pauseModelDownload, listModelDownloads } from '../api'
+import { Search, Cpu, Filter, Download, Loader2, CheckCircle2, Pause, Play, Trash2 } from 'lucide-react'
+import { getModels, getHardware, postTelemetry, downloadModel, pauseModelDownload, deleteModelDownload, listModelDownloads } from '../api'
 
 function fmtBytes(b) {
   if (typeof b !== 'number' || !isFinite(b)) return '—'
@@ -27,6 +27,10 @@ export default function Models() {
     for (const s of (d.downloads||[])) map[s.model_id] = s
     setDlStatus(map)
   }).catch(()=>{})
+  const handleDeleteModel = async (id) => {
+    if (!confirm('Delete downloaded weights for this model?')) return
+    try { await deleteModelDownload(id); refreshDl(); load() } catch(e) {}
+  }
   useEffect(()=>{ getHardware().then(setHw); load(); refreshDl() }, [])
   useEffect(()=>{ load() }, [q, type, maxVram])
   useEffect(()=>{
@@ -111,6 +115,11 @@ export default function Models() {
                 <button onClick={async ()=>{ try { await pauseModelDownload(m.id); refreshDl() } catch(e){} }}
                   className="px-3 py-2 rounded-lg bg-white/80 hover:bg-white text-black text-sm font-medium transition flex items-center gap-1" title="Pause/resume download">
                   {dlStatus[m.id]?.status==='paused' ? <Play className="w-4 h-4"/> : <Pause className="w-4 h-4"/>}
+                </button>
+              )}
+              {m.downloaded && (
+                <button onClick={()=>handleDeleteModel(m.id)} className="px-3 py-2 rounded-lg bg-white/10 hover:bg-red-500/30 text-white text-sm transition" title="Delete downloaded weights">
+                  <Trash2 className="w-4 h-4"/>
                 </button>
               )}
               <a href={m.download_url} target="_blank" rel="noreferrer" onClick={()=>postTelemetry('model_download_clicked',{model_id:m.id})}
