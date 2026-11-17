@@ -72,14 +72,19 @@ export default function Models() {
                 <div className="text-xs text-white/40 mt-0.5">{m.family} · {m.params_b}B params</div>
               </div>
               <div className="flex flex-col items-end gap-1">
-                <span className={`text-xs px-2 py-1 rounded-full ${m.type==='t2v'?'bg-white/15 text-white':'bg-white/10 text-white/70'}`}>
-                  {m.type==='t2v' ? 'Text→Video' : 'Image→Video'}
+                <span className={`text-xs px-2 py-1 rounded-full font-medium ${m.type==='t2v'?'bg-white text-black':'bg-white/20 text-white'}`}>
+                  {m.type==='t2v' ? 'TEXT → VIDEO' : 'IMAGE → VIDEO'}
                 </span>
                 <span className={`text-xs px-2 py-1 rounded-full ${m.fits?'bg-white/15 text-white':'bg-red-500/15 text-red-400'}`}>
                   {m.fits ? 'Fits VRAM' : 'No fit'}
                 </span>
-                {m.supports_real_generation && <span className="text-xs px-2 py-1 rounded-full bg-white/10 text-white/60">Real gen OK</span>}
+                <span className={`text-xs px-2 py-1 rounded-full ${m.supports_real_generation?'bg-white/15 text-white':'bg-white/5 text-white/40'}`}>
+                  {m.supports_real_generation ? '✓ Real gen' : '× No real gen'}
+                </span>
               </div>
+            </div>
+            <div className="mt-2 text-[11px] text-white/50">
+              {m.type==='t2v' ? 'Generates video from a text prompt.' : 'Animates an uploaded image into a video (requires input image).'}
             </div>
             <p className="text-sm text-white/60 mt-3 flex-1">{m.description}</p>
             <div className="mt-4 grid grid-cols-2 gap-2 text-xs">

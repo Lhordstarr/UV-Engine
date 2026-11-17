@@ -141,6 +141,9 @@ export default function Generate() {
                 className="mt-2 w-full px-4 py-2.5 rounded-xl bg-black border border-white/20 text-white text-sm">
                 {models.map(m=>(<option key={m.id} value={m.id} className="bg-black text-white">[{m.type==='t2v'?'T2V':'I2V'}] {m.name} — {m.vram_estimate_gb} GB{m.downloaded ? '  ✓' : ''}{m.supports_real_generation ? '  (real)' : ''}</option>))}
               </select>
+              <div className="mt-1 text-[11px] text-white/40">
+                T2V = text-to-video (prompt only). I2V = image-to-video (upload an image below). ✓ = weights downloaded. (real) = supports real generation.
+              </div>
             </div>
 
             <div>
