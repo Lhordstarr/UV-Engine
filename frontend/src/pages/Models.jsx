@@ -71,9 +71,15 @@ export default function Models() {
                 <div className="font-semibold">{m.name}</div>
                 <div className="text-xs text-white/40 mt-0.5">{m.family} · {m.params_b}B params</div>
               </div>
-              <span className={`text-xs px-2 py-1 rounded-full ${m.fits?'bg-white/15 text-white':'bg-red-500/15 text-red-400'}`}>
-                {m.fits ? 'Fits' : 'No fit'}
-              </span>
+              <div className="flex flex-col items-end gap-1">
+                <span className={`text-xs px-2 py-1 rounded-full ${m.type==='t2v'?'bg-white/15 text-white':'bg-white/10 text-white/70'}`}>
+                  {m.type==='t2v' ? 'Text→Video' : 'Image→Video'}
+                </span>
+                <span className={`text-xs px-2 py-1 rounded-full ${m.fits?'bg-white/15 text-white':'bg-red-500/15 text-red-400'}`}>
+                  {m.fits ? 'Fits VRAM' : 'No fit'}
+                </span>
+                {m.supports_real_generation && <span className="text-xs px-2 py-1 rounded-full bg-white/10 text-white/60">Real gen OK</span>}
+              </div>
             </div>
             <p className="text-sm text-white/60 mt-3 flex-1">{m.description}</p>
             <div className="mt-4 grid grid-cols-2 gap-2 text-xs">

@@ -21,4 +21,5 @@ ml = [
   "transformers>=4.46.0",
   "accelerate>=1.1.0",
   "safetensors>=0.4.5",
+  "tiktoken>=0.7.0",
 ]

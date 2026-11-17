@@ -139,7 +139,7 @@ export default function Generate() {
               <label className="text-xs text-white/50 uppercase tracking-wide">Model</label>
               <select value={modelId} onChange={e=>{setModelId(e.target.value); setResolutionPreset('Custom'); setWidth('');setHeight('');setFrames('');setFps('')}}
                 className="mt-2 w-full px-4 py-2.5 rounded-xl bg-black border border-white/20 text-white text-sm">
-                {models.map(m=>(<option key={m.id} value={m.id} className="bg-black text-white">{m.name} — {m.vram_estimate_gb} GB{m.downloaded ? '  ✓ downloaded' : ''}{m.supports_real_generation === false ? '  (no real gen)' : ''}</option>))}
+                {models.map(m=>(<option key={m.id} value={m.id} className="bg-black text-white">[{m.type==='t2v'?'T2V':'I2V'}] {m.name} — {m.vram_estimate_gb} GB{m.downloaded ? '  ✓' : ''}{m.supports_real_generation ? '  (real)' : ''}</option>))}
               </select>
             </div>
 
