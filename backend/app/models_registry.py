@@ -14,6 +14,7 @@ MODELS = [
         "default_fps": 16,
         "license": "Apache-2.0",
         "source": "Wan-AI/Wan2.1-T2V-1.3B",
+        "diffusers_repo": "Wan-AI/Wan2.1-T2V-1.3B-Diffusers",
         "tags": ["text-to-video", "low-vram", "recommended"],
         "min_vram_gb": 8,
     },
@@ -29,6 +30,7 @@ MODELS = [
         "default_fps": 16,
         "license": "Apache-2.0",
         "source": "Wan-AI/Wan2.1-T2V-14B",
+        "diffusers_repo": "Wan-AI/Wan2.1-T2V-14B-Diffusers",
         "tags": ["text-to-video", "high-quality"],
         "min_vram_gb": 40,
     },
@@ -44,6 +46,7 @@ MODELS = [
         "default_fps": 8,
         "license": "Apache-2.0",
         "source": "THUDM/CogVideoX-2b",
+        "diffusers_repo": "THUDM/CogVideoX-2b",
         "tags": ["text-to-video", "mid-vram"],
         "min_vram_gb": 12,
     },
@@ -59,6 +62,7 @@ MODELS = [
         "default_fps": 8,
         "license": "Apache-2.0",
         "source": "THUDM/CogVideoX-5b",
+        "diffusers_repo": "THUDM/CogVideoX-5b",
         "tags": ["text-to-video", "high-quality"],
         "min_vram_gb": 22,
     },
@@ -74,6 +78,7 @@ MODELS = [
         "default_fps": 8,
         "license": "Apache-2.0",
         "source": "THUDM/CogVideoX-2b",
+        "diffusers_repo": "THUDM/CogVideoX-2b",
         "tags": ["image-to-video"],
         "min_vram_gb": 12,
     },
@@ -119,6 +124,7 @@ MODELS = [
         "default_fps": 24,
         "license": "LTX-Video-Open-Weights",
         "source": "Lightricks/LTX-Video",
+        "diffusers_repo": "Lightricks/LTX-Video",
         "tags": ["text-to-video", "fast", "efficient"],
         "min_vram_gb": 12,
     },
@@ -134,6 +140,7 @@ MODELS = [
         "default_fps": 6,
         "license": "Stability AI Community",
         "source": "stabilityai/stable-video-diffusion-img2vid-xt",
+        "diffusers_repo": "stabilityai/stable-video-diffusion-img2vid-xt",
         "tags": ["image-to-video", "stable"],
         "min_vram_gb": 14,
     },
@@ -149,6 +156,7 @@ MODELS = [
         "default_fps": 7,
         "license": "Stability AI Community",
         "source": "stabilityai/stable-video-diffusion-img2vid",
+        "diffusers_repo": "stabilityai/stable-video-diffusion-img2vid",
         "tags": ["image-to-video"],
         "min_vram_gb": 10,
     },
@@ -164,6 +172,7 @@ MODELS = [
         "default_fps": 8,
         "license": "Apache-2.0",
         "source": "guoyww/animatediff-motion-adapter-v1-5-2",
+        "diffusers_repo": "guoyww/animatediff-motion-adapter-v1-5-2",
         "tags": ["text-to-video", "low-vram", "sd-based"],
         "min_vram_gb": 8,
     },
@@ -179,6 +188,7 @@ MODELS = [
         "default_fps": 8,
         "license": "OpenRAIL",
         "source": "cerspense/zeroscope_v2_XL",
+        "diffusers_repo": "cerspense/zeroscope_v2_XL",
         "tags": ["text-to-video", "low-vram"],
         "min_vram_gb": 6,
     },
@@ -194,6 +204,7 @@ MODELS = [
         "default_fps": 8,
         "license": "Apache-2.0",
         "source": "damo-vilab/text-to-video-ms-1.7b",
+        "diffusers_repo": "damo-vilab/text-to-video-ms-1.7b",
         "tags": ["text-to-video", "low-vram", "legacy"],
         "min_vram_gb": 8,
     },
@@ -236,6 +247,7 @@ def list_models(vram_available=None, type_filter=None, query=None):
         m2 = dict(m)
         m2["vram_estimate_gb"] = est
         m2["download_url"] = f"https://huggingface.co/{m['source']}"
+        m2["supports_real_generation"] = bool(m.get("diffusers_repo"))
         if vram_available is not None:
             m2["fits"] = est <= vram_available * 0.92
         if type_filter and m["type"] != type_filter:
@@ -253,5 +265,6 @@ def get_model(mid):
             m2 = dict(m)
             m2["vram_estimate_gb"] = estimate_vram(m["id"], m["default_resolution"][0], m["default_resolution"][1], m["default_frames"])
             m2["download_url"] = f"https://huggingface.co/{m['source']}"
+            m2["supports_real_generation"] = bool(m.get("diffusers_repo"))
             return m2
     return None

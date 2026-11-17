@@ -1,4 +1,4 @@
-"""Video generation: real diffusers (GPU/CPU) with no demo fallback."""
+"""Video generation: real diffusers (GPU/CPU), no demo fallback."""
 import inspect
 import shutil
 import subprocess
@@ -27,19 +27,79 @@ def _frames_to_video(tmpdir, out, fps):
     subprocess.run(cmd, check=True, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
 
 
+_hw = None
+
+
 def hw():
-    from .hardware import detect_hardware
     global _hw
-    try:
-        _hw
-    except NameError:
-        _hw = None
     if _hw is None:
         _hw = detect_hardware()
     return _hw
 
 
-_hw = None
+def _load_pipeline(repo, model, mid, dtype, device, job_id):
+    """Try generic auto-detect then model-specific pipeline classes."""
+    from diffusers import DiffusionPipeline
+
+    append_log(job_id, f"Loading {repo} on {device}...")
+    update_job(job_id, stage="Loading model", progress=5)
+
+    candidates = []
+    # Generic auto-detect
+    def _generic():
+        try:
+            return DiffusionPipeline.from_pretrained(repo, torch_dtype=dtype, trust_remote_code=True)
+        except TypeError:
+            return DiffusionPipeline.from_pretrained(repo, torch_dtype=dtype)
+    candidates.append(("DiffusionPipeline", _generic))
+
+    # Model-specific (best effort)
+    mid_l = (mid or "").lower()
+    fam_l = (model.get("family") or "").lower()
+    specific = []
+    if "wan" in mid_l or "wan" in fam_l:
+        specific += ["WanPipeline", "WanImageToVideoPipeline"]
+    if "cogvideo" in mid_l or "cogvideo" in fam_l:
+        specific += ["CogVideoXPipeline", "CogVideoXImageToVideoPipeline"]
+    if "hunyuan" in mid_l or "hunyuan" in fam_l:
+        specific += ["HunyuanVideoPipeline", "HunyuanVideoImageToVideoPipeline"]
+    if "mochi" in mid_l or "mochi" in fam_l:
+        specific += ["MochiPipeline"]
+    if "ltx" in mid_l or "ltx" in fam_l:
+        specific += ["LTXPipeline", "LTXImageToVideoPipeline"]
+    if "svd" in mid_l or "stable-video" in mid_l or "stable video" in fam_l:
+        specific += ["StableVideoDiffusionPipeline"]
+    if "animatediff" in mid_l or "animatediff" in fam_l:
+        specific += ["AnimateDiffPipeline", "AnimateDiffSDXLPipeline"]
+    if "zeroscope" in mid_l or "modelscope" in mid_l:
+        specific += ["TextToVideoSDPipeline"]
+
+    import diffusers
+    for cls_name in specific:
+        cls = getattr(diffusers, cls_name, None)
+        if cls is None:
+            continue
+        def _factory(c=cls):
+            return c.from_pretrained(repo, torch_dtype=dtype, trust_remote_code=True)
+        candidates.append((cls_name, _factory))
+
+    pipe = None
+    last_err = None
+    for name, factory in candidates:
+        try:
+            pipe = factory()
+            append_log(job_id, f"Loaded pipeline: {name}")
+            break
+        except Exception as e:
+            last_err = e
+            continue
+    if pipe is None:
+        raise last_err if last_err else RuntimeError("Could not load any pipeline")
+    try:
+        pipe.to(device)
+    except Exception:
+        pass
+    return pipe
 
 
 def _try_real_generation(job):
@@ -47,8 +107,6 @@ def _try_real_generation(job):
     import torch
 
     h = hw()
-    # Lazy imports
-    from diffusers import DiffusionPipeline
     params = job["params"]
     mid = params["model_id"]
     model = get_model(mid)
@@ -59,16 +117,14 @@ def _try_real_generation(job):
     steps = params.get("steps", 25)
     seed = params.get("seed")
     fps = params.get("fps", model["default_fps"])
-    repo = model["source"]
+    repo = model.get("diffusers_repo") or model["source"]
+    if not model.get("diffusers_repo"):
+        raise RuntimeError("No diffusers pipeline available for this model")
     device = "cuda" if h["cuda_available"] else ("mps" if h["mps_available"] else "cpu")
     dtype = torch.float16 if device != "cpu" else torch.float32
-    append_log(job["id"], f"Loading {repo} on {device}...")
-    update_job(job["id"], stage="Loading model", progress=5)
-    try:
-        pipe = DiffusionPipeline.from_pretrained(repo, torch_dtype=dtype, trust_remote_code=True)
-    except TypeError:
-        pipe = DiffusionPipeline.from_pretrained(repo, torch_dtype=dtype)
-    pipe.to(device)
+
+    pipe = _load_pipeline(repo, model, mid, dtype, device, job["id"])
+
     update_job(job["id"], stage="Generating", progress=15)
     g = torch.Generator(device=device)
     if seed is not None:

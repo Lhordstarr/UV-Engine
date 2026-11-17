@@ -153,6 +153,11 @@ export default function Generate() {
                 Real generation is unavailable (missing PyTorch/diffusers). Run `./start.sh` on a GPU machine, or install ML deps with `uv sync --extra ml`. (Demo mode removed.)
               </div>
             )}
+            {model && model.supports_real_generation === false && (
+              <div className="text-xs text-white/40">
+                This model has no diffusers pipeline; real generation is not supported for it. Pick a diffusers-compatible model (e.g. zeroscope, cogvideox-2b, svd).
+              </div>
+            )}
             {realGenAvailable && backends?.torch?.device !== 'gpu' && (
               <div className="text-xs text-white/80">
                 CPU mode: real generation works but is very slow and memory-heavy.
