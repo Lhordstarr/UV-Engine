@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react'
-import { Cpu, CheckCircle2, XCircle, AlertCircle, Power } from 'lucide-react'
+import { Cpu, CheckCircle2, XCircle, AlertCircle, Power, Download, Loader2 } from 'lucide-react'
 import api from '../api'
-import { toggleBackend } from '../api'
+import { toggleBackend, listModelDownloads } from '../api'
 
 const deviceColor = { gpu: 'bg-white/15 text-white', cpu: 'bg-white/15 text-white', none: 'bg-red-500/15 text-red-400', hybrid: 'bg-white/15 text-white', unknown: 'bg-white/10 text-white/50' }
 
@@ -9,6 +9,7 @@ export default function Backends() {
   const [data, setData] = useState(null)
   const [install, setInstall] = useState(null)
   const [toggling, setToggling] = useState(null)
+  const [downloads, setDownloads] = useState([])
   const refreshBackends = () => api.get('/backends').then(r=>setData(r.data)).catch(()=>{})
   const handleToggle = async (b) => {
     setToggling(b.id)
@@ -16,6 +17,14 @@ export default function Backends() {
     setToggling(null)
   }
   useEffect(()=>{ refreshBackends(); api.get('/backends/install-ml/status').then(r=>setInstall(r.data)).catch(()=>{}) }, [])
+  useEffect(()=>{
+    const es = new EventSource('/api/models/downloads/events')
+    es.onmessage = (e) => {
+      try { const d = JSON.parse(e.data); setDownloads(d.downloads||[]) } catch(err) {}
+    }
+    es.onerror = () => {}
+    return ()=>{ es.close() }
+  }, [])
 
   const startInstall = async () => {
     try {
@@ -97,6 +106,30 @@ export default function Backends() {
           ))}
         </div>
       )}
+
+      <div className="glass rounded-2xl p-5">
+        <h2 className="font-semibold mb-3 flex items-center gap-2"><Download className="w-4 h-4 text-white"/> Model downloads</h2>
+        {downloads.length === 0 ? <div className="text-white/40 text-sm">No models.</div> : (
+          <div className="space-y-2">
+            {downloads.map(d=>(
+              <div key={d.model_id} className="flex items-center gap-3 px-3 py-2 rounded-lg bg-white/5 text-sm">
+                <div className="flex-1 min-w-0">
+                  <div className="font-medium truncate">{d.model_id}</div>
+                  <div className="text-xs text-white/40">{d.stage}{d.current_file ? ` · ${d.current_file}` : ''}</div>
+                </div>
+                <div className="w-32">
+                  <div className="w-full h-1.5 bg-white/10 rounded-full overflow-hidden">
+                    <div className={`h-full transition-all ${d.status==='done'?'bg-white':d.status==='error'?'bg-red-500':'bg-white/60'}`} style={{width:`${d.progress||0}%`}}/>
+                  </div>
+                </div>
+                <span className="text-xs text-white/60 w-12 text-right">{Number(d.progress||0).toFixed(0)}%</span>
+                {d.status==='running' && <Loader2 className="w-4 h-4 animate-spin text-white/60"/>}
+                {d.status==='done' && <CheckCircle2 className="w-4 h-4 text-white"/>}
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
 
       {data?.torch && (
         <div className="glass rounded-2xl p-6">
