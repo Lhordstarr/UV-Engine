@@ -34,6 +34,7 @@ export default function Generate() {
   // demo mode removed; real generation is always attempted
   const [imagePath, setImagePath] = useState(null)
   const [imageName, setImageName] = useState('')
+  const [imagePreview, setImagePreview] = useState(null)
   const [vramEst, setVramEst] = useState(null)
   const [stats, setStats] = useState(null)
   const refreshStats = () => getTelemetryStats().then(setStats).catch(()=>{})
@@ -71,6 +72,7 @@ export default function Generate() {
   const handleImage = async (e) => {
     const f = e.target.files?.[0]
     if(!f) return
+    setImagePreview(URL.createObjectURL(f))
     try { const r = await uploadImage(f); setImagePath(r.path); setImageName(f.name) } catch(err){ setError('Upload failed') }
   }
 
@@ -173,13 +175,22 @@ export default function Generate() {
             </div>
 
             {model?.type==='i2v' && (
-              <div>
-                <label className="text-xs text-white/50 uppercase tracking-wide">Input image (optional)</label>
-                <label className="mt-2 flex items-center gap-3 px-4 py-3 rounded-xl bg-white/5 border border-dashed border-white/20 cursor-pointer hover:bg-white/10 transition">
+              <div className="space-y-2">
+                <label className="text-xs text-white/50 uppercase tracking-wide">Input image (required for image-to-video)</label>
+                <label className="flex items-center gap-3 px-4 py-3 rounded-xl bg-white/5 border border-dashed border-white/20 cursor-pointer hover:bg-white/10 transition">
                   <Upload className="w-4 h-4 text-white/50"/>
-                  <span className="text-sm text-white/60">{imageName || 'Choose image…'}</span>
+                  <span className="text-sm text-white/60">{imageName || 'Choose an image to animate…'}</span>
                   <input type="file" accept="image/*" className="hidden" onChange={handleImage}/>
                 </label>
+                {imagePath && (
+                  <div className="flex items-center gap-3">
+                    <img src={imagePreview} alt="input" className="w-24 h-24 object-cover rounded-lg border border-white/20"/>
+                    <div className="text-xs text-white/50">Uploaded: {imageName}. The model will animate this image.</div>
+                  </div>
+                )}
+                {!imagePath && (
+                  <div className="text-xs text-amber-400/80">Upload an image above, otherwise generation will fail.</div>
+                )}
               </div>
             )}
 
