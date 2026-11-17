@@ -42,7 +42,7 @@ export default function Downloads() {
                   <div className="font-medium truncate">{m.name}</div>
                   <div className="text-xs text-white/40">{m.family} · {m.vram_estimate_gb} GB VRAM · {m.type==='t2v'?'Text→Video':'Image→Video'}
                     {m.downloaded && <span className="ml-2 text-white">· downloaded</span>}
-                    {m.supports_real_generation && <span className="ml-2 text-white/60">· real gen</span>}
+                    {m.supports_real_generation && <span className="ml-2 text-white/60">· runnable</span>}
                   </div>
                 </div>
                 <button onClick={async()=>{ try { await downloadModel(m.id); postTelemetry('model_download_started',{model_id:m.id}) } catch(e){} }}

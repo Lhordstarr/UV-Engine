@@ -79,7 +79,7 @@ export default function Models() {
                   {m.fits ? 'Fits VRAM' : 'No fit'}
                 </span>
                 <span className={`text-xs px-2 py-1 rounded-full ${m.supports_real_generation?'bg-white/15 text-white':'bg-white/5 text-white/40'}`}>
-                  {m.supports_real_generation ? '✓ Real gen' : '× No real gen'}
+                  {m.supports_real_generation ? '✓ Runnable here' : '× Needs custom setup'}
                 </span>
               </div>
             </div>
