@@ -1,6 +1,6 @@
 import { useEffect, useState, useRef } from 'react'
 import { Link } from 'react-router-dom'
-import { Search, Cpu, Filter, Download, Loader2, CheckCircle2, Pause, Play, Trash2 } from 'lucide-react'
+import { Search, Cpu, Filter, Download, Loader2, CheckCircle2, Pause, Play, Trash2, ExternalLink } from 'lucide-react'
 import { getModels, getHardware, postTelemetry, downloadModel, pauseModelDownload, deleteModelDownload, listModelDownloads } from '../api'
 
 function fmtBytes(b) {
@@ -131,7 +131,9 @@ export default function Models() {
                 </button>
               )}
               <a href={m.download_url} target="_blank" rel="noreferrer" onClick={()=>postTelemetry('model_download_clicked',{model_id:m.id})}
-                className="px-3 py-2 rounded-lg bg-white/5 hover:bg-white/10 text-sm transition" title="Open on HuggingFace">⬇</a>
+                className="px-3 py-2 rounded-lg bg-white/5 hover:bg-white/10 text-sm transition flex items-center" title="Open on HuggingFace">
+                <ExternalLink className="w-4 h-4"/>
+              </a>
             </div>
             {dlStatus[m.id] && dlStatus[m.id].status !== 'idle' && (
               <div className="mt-2">
