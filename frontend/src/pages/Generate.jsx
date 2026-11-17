@@ -160,7 +160,7 @@ export default function Generate() {
             )}
 
             <button onClick={submit} disabled={!prompt.trim() || !modelId}
-              className="w-full py-3 rounded-xl bg-gradient-to-r from-white to-white text-black font-semibold hover:opacity-90 transition disabled:opacity-40 disabled:cursor-not-allowed flex items-center justify-center gap-2 shadow-lg shadow-white/30">
+              className="w-full py-3 rounded-xl bg-black border-2 border-white text-white font-semibold hover:bg-white hover:text-black transition disabled:opacity-40 disabled:cursor-not-allowed flex items-center justify-center gap-2">
               <Play className="w-4 h-4"/> Generate
             </button>
             {error && <div className="text-sm text-red-400 flex items-center gap-2"><AlertCircle className="w-4 h-4"/>{error}</div>}
