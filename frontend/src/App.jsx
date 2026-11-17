@@ -25,7 +25,7 @@ export default function App() {
         <aside className="w-60 shrink-0 border-r border-white/5 bg-black/30 backdrop-blur-xl flex flex-col">
           <div className="px-5 py-6 flex items-center gap-3">
             <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-white to-white flex items-center justify-center shadow-lg shadow-white/30">
-              <Video className="w-5 h-5 text-white" />
+              <Video className="w-5 h-5 text-black" />
             </div>
             <div>
               <div className="font-bold text-lg leading-tight">UV-Engine</div>
