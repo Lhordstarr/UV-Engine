@@ -5,6 +5,15 @@ import { getModels, generate, getJob, uploadImage, estimate, getTelemetryStats, 
 import api from '../api'
 import Resources from '../components/Resources'
 
+const RESOLUTIONS = [
+  { label: '512 × 512', w: 512, h: 512 },
+  { label: '720 × 480', w: 720, h: 480 },
+  { label: '832 × 480', w: 832, h: 480 },
+  { label: '1024 × 576', w: 1024, h: 576 },
+  { label: '1280 × 720', w: 1280, h: 720 },
+  { label: 'Custom', w: null, h: null },
+]
+
 export default function Generate() {
   const [params] = useSearchParams()
   const [models, setModels] = useState([])
@@ -12,6 +21,12 @@ export default function Generate() {
   const [prompt, setPrompt] = useState('')
   const [width, setWidth] = useState('')
   const [height, setHeight] = useState('')
+  const [resolutionPreset, setResolutionPreset] = useState('Custom')
+  const applyResolution = (label) => {
+    setResolutionPreset(label)
+    const r = RESOLUTIONS.find(x=>x.label===label)
+    if (r && r.w) { setWidth(r.w); setHeight(r.h) }
+  }
   const [frames, setFrames] = useState('')
   const [fps, setFps] = useState('')
   const [steps, setSteps] = useState(25)
@@ -41,10 +56,15 @@ export default function Generate() {
 
   useEffect(()=>{
     if(model){
-      if(!width) setWidth(model.default_resolution[0])
-      if(!height) setHeight(model.default_resolution[1])
+      const w = model.default_resolution[0]
+      const h = model.default_resolution[1]
+      if(!width) setWidth(w)
+      if(!height) setHeight(h)
       if(!frames) setFrames(model.default_frames)
       if(!fps) setFps(model.default_fps)
+      const match = RESOLUTIONS.find(r=>r.w===w && r.h===h)
+      if (match) setResolutionPreset(match.label)
+      else setResolutionPreset('Custom')
     }
   }, [model])
 
@@ -117,15 +137,26 @@ export default function Generate() {
 
             <div>
               <label className="text-xs text-white/50 uppercase tracking-wide">Model</label>
-              <select value={modelId} onChange={e=>{setModelId(e.target.value); setWidth('');setHeight('');setFrames('');setFps('')}} 
+              <select value={modelId} onChange={e=>{setModelId(e.target.value); setResolutionPreset('Custom'); setWidth('');setHeight('');setFrames('');setFps('')}}
                 className="mt-2 w-full px-4 py-2.5 rounded-xl bg-black border border-white/20 text-white text-sm">
                 {models.map(m=>(<option key={m.id} value={m.id} className="bg-black text-white">{m.name} — {m.vram_estimate_gb} GB{m.downloaded ? '  ✓ downloaded' : ''}{m.supports_real_generation === false ? '  (no real gen)' : ''}</option>))}
               </select>
             </div>
 
+            <div>
+              <label className="text-xs text-white/50 uppercase tracking-wide">Resolution</label>
+              <select value={resolutionPreset} onChange={e=>applyResolution(e.target.value)}
+                className="mt-2 w-full px-4 py-2.5 rounded-xl bg-black border border-white/20 text-white text-sm">
+                {RESOLUTIONS.map(r=>(<option key={r.label} value={r.label} className="bg-black text-white">{r.label}</option>))}
+              </select>
+            </div>
+            {resolutionPreset === 'Custom' && (
+              <div className="grid grid-cols-2 gap-3">
+                <NumField label="Width" value={width} onChange={setWidth}/>
+                <NumField label="Height" value={height} onChange={setHeight}/>
+              </div>
+            )}
             <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-              <NumField label="Width" value={width} onChange={setWidth}/>
-              <NumField label="Height" value={height} onChange={setHeight}/>
               <NumField label="Frames" value={frames} onChange={setFrames}/>
               <NumField label="FPS" value={fps} onChange={setFps}/>
             </div>
